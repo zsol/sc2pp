@@ -45,5 +45,5 @@ int main(int argc, char** argv)
   bytemap_result.map[2] = 1;
   bytemap_result.map[4] = 659449;
   assert(test(bytemap, map, bytemap_result));
-  
+  return 0;
 }

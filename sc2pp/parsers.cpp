@@ -97,6 +97,7 @@ namespace sc2pp {
 
         byte_string_rule_type byte_string;
         single_byte_integer_rule_type single_byte_integer;
+        single_byte_integer_rule_type single_byte_integer_; // just an integer without 'type' byte
         four_byte_integer_rule_type four_byte_integer;
         variable_length_integer_rule_type variable_length_integer;
         array_rule_type array;
@@ -108,8 +109,11 @@ namespace sc2pp {
             byte_string %=
                 omit[byte_(0x2)] > omit[byte_[_a = _1/2]] > repeat(_a)[byte_];
 	    
-            single_byte_integer =
-                omit[byte_(0x6)] > byte_[_val = apply_sign(_1)];
+            single_byte_integer_ =
+                byte_[_val = apply_sign(_1)];
+
+            single_byte_integer %=
+                omit[byte_(0x6)] > single_byte_integer_;
 
             four_byte_integer =
                 omit[byte_(0x7)] > big_dword[_val = apply_sign(_1)];
@@ -122,12 +126,12 @@ namespace sc2pp {
                 > eps[_val = apply_sign(_a)];
 
             array %=
-                omit[byte_(0x4) > byte_(0x0) > byte_(0x1) > byte_[_a = apply_sign(_1)]]
+                omit[byte_(0x4) > byte_(0x0) > byte_(0x1) > single_byte_integer_[_a = _1]]
                 >> repeat(_a)[object];
 
             map =
-                omit[byte_(0x5) > byte_[_a = apply_sign(_1)]]
-                >> repeat(_a)[byte_ > object];
+                omit[byte_(0x5) > single_byte_integer_[_a = _1]]
+                >> repeat(_a)[single_byte_integer_ > object];
 
             object = 
                 byte_string[_val = _1] 
