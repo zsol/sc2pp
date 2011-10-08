@@ -42,7 +42,7 @@ FIND_LIBRARY( MPQLib NAMES mpq )
 
 
 ############################## Includes #######################################
-INCLUDE_DIRECTORIES( ./sc2pp ) # Headers
+INCLUDE_DIRECTORIES( . ) # Headers
 
 ############################## Project generation #############################
 IF ( BUILD_STATIC )
@@ -67,6 +67,8 @@ IF ( BUILD_TESTS )
   ADD_SUBDIRECTORY( tests )
 #  FIND_PACKAGE( Boost REQUIRED COMPONENTS program_options )
 ENDIF( BUILD_TESTS )
+
+ADD_SUBDIRECTORY( tools )
 
 ############################## Target Properties ##############################
 SET_TARGET_PROPERTIES( SC2pp PROPERTIES LINKER_LANGUAGE CXX ) # Language forced to C++

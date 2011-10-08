@@ -1,5 +1,6 @@
-#include "parsers.h"
 #include <boost/spirit/include/phoenix.hpp>
+
+#include <sc2pp/parsers.h>
 
 using namespace boost::spirit::qi;
 using namespace boost::phoenix;
@@ -61,40 +62,11 @@ namespace
     };
     
     function<apply_sign_impl> apply_sign;
-
-    struct object_equal : public boost::static_visitor<bool>
-    {
-        template <typename T, typename U>
-        bool operator()(T const &, U const &) const { return false; }
-        
-        template <typename T>
-        bool operator()(T const & lhs, T const & rhs) const { return lhs == rhs; }
-    };
 }
 
 namespace sc2pp { 
     namespace parsers {
         
-        bool operator==(object_type const & a, object_type const & b)
-        {
-            return boost::apply_visitor(::object_equal(), a, b);
-        }
-
-        bool 
-        byte_array::operator==(byte_array const & other) const { 
-            ::object_equal visitor;
-            return std::equal(array.begin(), array.end(), other.array.begin(),
-                              boost::apply_visitor(visitor));
-        }
-
-        bool 
-        byte_map::operator==(byte_map const & other) const { 
-            ::object_equal visitor;
-            return std::equal(map.begin(), map.end(), other.map.begin(),
-                              [&visitor](map_type::value_type const & a, map_type::value_type const & b)
-                              { return a.first == b.first && boost::apply_visitor(visitor, a.second, b.second); });
-        }
-
         byte_string_rule_type byte_string;
         single_byte_integer_rule_type single_byte_integer;
         single_byte_integer_rule_type single_byte_integer_; // just an integer without 'type' byte
@@ -133,12 +105,9 @@ namespace sc2pp {
                 omit[byte_(0x5) > single_byte_integer_[_a = _1]]
                 >> repeat(_a)[single_byte_integer_ > object];
 
-            object = 
-                byte_string[_val = _1] 
-                | single_byte_integer[_val = _1] 
-                | four_byte_integer[_val = _1] 
-                | variable_length_integer[_val = _1] 
-                | array[_val = _1];
+            object %=  
+                byte_string | single_byte_integer | four_byte_integer | variable_length_integer
+                | array | map;
           
 #define HANDLE_ERROR(X)                                                 \
             X.name(#X);                                                 \

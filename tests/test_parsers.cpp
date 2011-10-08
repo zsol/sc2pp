@@ -6,9 +6,10 @@
 
 #include <boost/spirit/include/phoenix.hpp>
 
-#include <parsers.h>
+#include <sc2pp/parsers.h>
 
 using namespace sc2pp::parsers;
+using namespace sc2pp;
 using namespace boost::phoenix;
 using namespace boost::spirit::qi;
 
@@ -34,16 +35,18 @@ int main(int argc, char** argv)
                                            0x00, 0x00, 0x53, 0x32, 0x04, 0x09, 0x02,
                                            0x08, 0x09, 0xf2, 0xbf, 0x50};
 
-  assert(test(bytestring, byte_string, std::string("Pille")));
-  assert(test(singlebyteinteger, single_byte_integer, 38));
-  assert(test(fourbyteinteger, four_byte_integer, 10649));
-  assert(test(vlinteger, variable_length_integer, 659449));
-  assert(test(bytearray, array, byte_array(std::vector<object_type>({"Pille", 0x2a >> 1, 0xa6 >> 1, 0x46 * -1}))));
+  object_type obj;
+  assert(test(bytestring, byte_string, obj = std::string("Pille")));
+  assert(test(singlebyteinteger, single_byte_integer, obj = 38));
+  assert(test(fourbyteinteger, four_byte_integer, obj = 10649));
+  assert(test(vlinteger, variable_length_integer, obj = 659449));
+  assert(test(bytearray, array, obj = byte_array(std::vector<object_type>({"Pille", 0x2a >> 1, 0xa6 >> 1, 0x46 * -1}))));
   byte_map bytemap_result;
   bytemap_result.map[0] = 2;
   bytemap_result.map[1] = 10649;
   bytemap_result.map[2] = 1;
   bytemap_result.map[4] = 659449;
-  assert(test(bytemap, map, bytemap_result));
+  assert(test(bytemap, map, obj = bytemap_result));
+
   return 0;
 }
