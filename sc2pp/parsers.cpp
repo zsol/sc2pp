@@ -98,7 +98,7 @@ namespace sc2pp {
                 > eps[_val = apply_sign(_a)];
 
             array %=
-                omit[byte_(0x4) > byte_(0x0) > byte_(0x1) > single_byte_integer_[_a = _1]]
+                omit[byte_(0x4) > byte_(0x1) > byte_(0x0) > single_byte_integer_[_a = _1]]
                 >> repeat(_a)[object];
 
             map =
