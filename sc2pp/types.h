@@ -10,6 +10,7 @@
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/fusion/adapted/std_pair.hpp>
 #include <boost/fusion/include/std_pair.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace sc2pp {
 
@@ -57,7 +58,43 @@ namespace sc2pp {
     std::ostream& operator<<(std::ostream&, byte_map const &);
     std::ostream& operator<<(std::ostream&, object_type const &);
     
-    
+    struct color_t
+    {
+        int r;
+        int g;
+        int b;
+        int a;
+    };
+
+    struct player_t
+    {
+        enum result_t { LOST = 0, WON = 1, UNKNOWN = 2 };
+        std::string name;
+        int bnet_region;
+        long bnet_id;
+        std::string race;
+        color_t color;
+        int handicap;
+        result_t result;
+    };
+
+    struct event_t
+    {
+    };
+
+    struct replay_t
+    {
+        replay_t(std::string const& file);
+        enum speed_t { };
+        std::string version;
+        unsigned long build;
+        unsigned long frames;
+        typedef std::vector<player_t> players_t;
+        players_t players;
+        std::string map;
+        boost::posix_time::ptime played_time;
+        speed_t speed;
+    };
 }
 
 BOOST_FUSION_ADAPT_STRUCT(sc2pp::byte_array, 
