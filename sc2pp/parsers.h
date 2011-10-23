@@ -18,10 +18,10 @@ namespace sc2pp { namespace parsers {
         typedef boost::spirit::qi::rule<const uint8_t*,
                                         int()> single_byte_integer_rule_type;
         typedef boost::spirit::qi::rule<const uint8_t*,
-                                        long()> four_byte_integer_rule_type;
+                                        num_t()> four_byte_integer_rule_type;
         typedef boost::spirit::qi::rule<const uint8_t*,
-                                        boost::spirit::qi::locals<long, int>, 
-                                        long()> variable_length_integer_rule_type;
+                                        boost::spirit::qi::locals<hugenum_t, int>, 
+                                        hugenum_t()> variable_length_integer_rule_type;
         typedef boost::spirit::qi::rule<const uint8_t*,
                                         boost::spirit::qi::locals<int>,
                                         byte_array()> array_rule_type;

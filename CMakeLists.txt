@@ -39,7 +39,8 @@ SET( Boost_USE_STATIC_LIBS   ON )
 FIND_PACKAGE( Boost REQUIRED COMPONENTS iostreams program_options)
 
 FIND_LIBRARY( MPQLib NAMES mpq )
-
+FIND_LIBRARY( GMP NAMES gmp libgmp )
+FIND_LIBRARY( GMPXX NAMES gmpxx libgmpxx )
 
 ############################## Includes #######################################
 INCLUDE_DIRECTORIES( . ) # Headers
@@ -51,7 +52,7 @@ ELSE ( BUILD_STATIC )
   ADD_LIBRARY( SC2pp SHARED ${Sources} ${PublicHeaders} ${PrivateHeaders} )
 ENDIF ( BUILD_STATIC )
 
-TARGET_LINK_LIBRARIES( SC2pp ${Boost_LIBRARIES} ${MPQLib} )
+TARGET_LINK_LIBRARIES( SC2pp ${Boost_LIBRARIES} ${MPQLib} ${GMP} ${GMPXX} )
 
 
 ################################### Options ###################################

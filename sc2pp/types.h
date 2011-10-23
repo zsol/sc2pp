@@ -12,6 +12,8 @@
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include <gmpxx.h>
+
 namespace sc2pp {
 
     typedef unsigned char uint8_t;
@@ -19,13 +21,23 @@ namespace sc2pp {
     struct byte_array;
     struct byte_map;
 
-    typedef boost::variant<long, 
-                           std::string, 
+    typedef mpz_class hugenum_t;
+    typedef long num_t;
+
+    typedef boost::variant<num_t,
+                           hugenum_t, 
+                           std::string,
                            boost::recursive_wrapper<byte_array>,
                            boost::recursive_wrapper<byte_map> >
     object_type;
-    
+
+    template <typename T>
+    bool operator==(object_type const & a, T const & b) { object_type tmp = b; return a == b; }
+    template <typename T>
+    bool operator==(T const & a, object_type const & b) { return b == a; }
+
     bool operator==(object_type const & a, object_type const & b);
+    num_t get_num(object_type const & obj);
 
     struct byte_array
     {
@@ -87,14 +99,21 @@ namespace sc2pp {
         replay_t(std::string const& file);
         enum speed_t { };
         std::string version;
-        unsigned long build;
-        unsigned long frames;
+        num_t build;
+        num_t frames;
         typedef std::vector<player_t> players_t;
         players_t players;
         std::string map;
         boost::posix_time::ptime played_time;
         speed_t speed;
+
+    private:
+        void read_header(std::string const&);
     };
+
+    std::ostream& operator<<(std::ostream& stream, replay_t const & rep);
+    std::ostream& operator<<(std::ostream& stream, player_t const & rep);
+
 }
 
 BOOST_FUSION_ADAPT_STRUCT(sc2pp::byte_array, 

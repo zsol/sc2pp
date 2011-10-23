@@ -46,7 +46,7 @@ namespace
         write_escaped(at_c<2>(params), at_c<1>(params), std::ostream_iterator<char>(std::cerr));
         std::cerr << std::endl;
     }
-    
+
     struct apply_sign_impl
     {
         template <typename Arg>
@@ -56,12 +56,29 @@ namespace
         };
         template <typename Arg>
         long operator()(Arg num) const
-            {
-                return (num / 2) * (1 - 2 * (num & 1));
-            }
+        {
+            return (num / 2) * (1 - 2 * (num & 1));
+        }
+        
+    };
+
+    struct apply_huge_sign_impl
+    {
+        template <typename Arg>
+        struct result
+        {
+            typedef sc2pp::hugenum_t type;
+        };
+        template <typename Arg>
+        sc2pp::hugenum_t operator()(Arg num) const
+        {
+            return (num / 2) * (1 - 2 * (num % 2));
+        }
+        
     };
     
     function<apply_sign_impl> apply_sign;
+    function<apply_huge_sign_impl> apply_huge_sign;
 }
 
 namespace sc2pp { 
@@ -92,10 +109,10 @@ namespace sc2pp {
 
             variable_length_integer =
                 omit[byte_(0x9)] > repeat(0, inf)[&byte_[if_((_1 & 0x80) == 0)[_pass = false]]
-                                                  >> byte_[_a += (_1 & 0x7f) << (_b * 7)] 
+                                                  >> byte_[_a += static_cast_<hugenum_t>(_1 & 0x7f) << (_b * 7)] 
                                                   >> eps[_b += 1]]
-                > byte_[_a += (_1 & 0xff) << (_b * 7)] 
-                > eps[_val = apply_sign(_a)];
+                > byte_[_a += static_cast_<hugenum_t>(_1 & 0xff) << (_b * 7)] 
+                > eps[_val = apply_huge_sign(_a)];
 
             array %=
                 omit[byte_(0x4) > byte_(0x1) > byte_(0x0) > single_byte_integer_[_a = _1]]

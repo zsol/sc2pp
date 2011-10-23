@@ -18,7 +18,12 @@ bool test(Container const & arr, Rule const & rule, Result const & result)
 {
   Result tmp;
   const uint8_t* beg, *end;
-  parse(beg = arr.begin(), end = arr.end(), rule, tmp);
+  if (not parse(beg = arr.begin(), end = arr.end(), rule, tmp)) {
+    std::cerr << "Failed to parse..." << std::endl;
+    return false;
+  }
+  if (not (tmp == result))
+    std::cerr << "Expected: " << result << ", got: " << tmp << "." << std::endl;
   return tmp == result;
 }
 
@@ -28,6 +33,8 @@ int main(int argc, char** argv)
   std::array<const uint8_t, 2> singlebyteinteger = {0x06, 0x4c}; 
   std::array<const uint8_t, 5> fourbyteinteger = {0x07, 0x00, 0x00, 0x53, 0x32};
   std::array<const uint8_t, 4> vlinteger = {0x09, 0xf2, 0xbf, 0x50};
+  std::array<const uint8_t, 11> hugevlinteger = {0x09, 0x80, 0x80, 0x80, 0x80, 0x80, 
+                                                 0x80, 0x80, 0x80, 0x80, 0x02};
   std::array<const uint8_t, 17> bytearray = {0x04, 0x01, 0x00, 0x08, 0x02 ,0x0a, 0x50, 
                                              0x69, 0x6c, 0x6c, 0x65, 0x06, 0x2a, 0x06, 
                                              0xa6, 0x06, 0x8d};
@@ -39,13 +46,14 @@ int main(int argc, char** argv)
   assert(test(bytestring, byte_string, obj = std::string("Pille")));
   assert(test(singlebyteinteger, single_byte_integer, obj = 38));
   assert(test(fourbyteinteger, four_byte_integer, obj = 10649));
-  assert(test(vlinteger, variable_length_integer, obj = 659449));
+  assert(test(vlinteger, variable_length_integer, obj = mpz_class(659449)));
+  assert(test(hugevlinteger, variable_length_integer, obj = (mpz_class(1) << 63)));
   assert(test(bytearray, array, obj = byte_array(std::vector<object_type>({"Pille", 0x2a >> 1, 0xa6 >> 1, 0x46 * -1}))));
   byte_map bytemap_result;
-  bytemap_result.map[0] = 2;
+  bytemap_result.map[0] = mpz_class(2);
   bytemap_result.map[1] = 10649;
-  bytemap_result.map[2] = 1;
-  bytemap_result.map[4] = 659449;
+  bytemap_result.map[2] = mpz_class(1);
+  bytemap_result.map[4] = mpz_class(659449);
   assert(test(bytemap, map, obj = bytemap_result));
 
   return 0;
