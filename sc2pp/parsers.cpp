@@ -1,9 +1,11 @@
 #include <boost/spirit/include/phoenix.hpp>
-
 #include <sc2pp/parsers.h>
+
+#include <array>
 
 using namespace boost::spirit::qi;
 using namespace boost::phoenix;
+using std::array;
 
 namespace
 {
@@ -79,6 +81,55 @@ namespace
     
     function<apply_sign_impl> apply_sign;
     function<apply_huge_sign_impl> apply_huge_sign;
+
+    struct vector_to_array_impl
+    {
+        template <typename Arg>
+        struct result
+        {
+            typedef std::array<unsigned char, 4> type;
+        };
+        template <typename Arg>
+        typename result<Arg>::type operator()(Arg a) const
+        {
+            typename result<Arg>::type ret;
+            for (int i = 0; i < ret.size() && i < a.size(); ++i)
+            {
+                ret[i] = a[i];
+            }
+            return ret;
+        }
+    };
+
+    function<vector_to_array_impl> vector_to_array;
+
+    template <typename Base>
+    struct base_from_derived_visitor : public boost::static_visitor<std::shared_ptr<Base> >
+    {
+        template <typename DerivedPtr>
+        std::shared_ptr<Base> operator()(DerivedPtr const & arg) const
+        {
+            return std::dynamic_pointer_cast<Base>(arg);
+        }
+    };
+
+    // only for the weak:
+    struct dynamic_pointer_cast_impl
+    {
+        template <typename Arg>
+        struct result
+        {
+            typedef sc2pp::message_event_t rawtype;
+            typedef std::shared_ptr<rawtype> type;
+        };
+        template <typename Arg>
+        typename result<Arg>::type operator()(Arg a) const
+        {
+            base_from_derived_visitor<typename result<Arg>::rawtype> v;
+            return boost::apply_visitor(v, a);
+        }
+    };
+    function<dynamic_pointer_cast_impl> dynamic_pointer_cast_; // make sure we notice if they actually implement this in phoenix
 }
 
 namespace sc2pp { 
@@ -92,6 +143,12 @@ namespace sc2pp {
         array_rule_type array;
         map_rule_type map;
         object_rule_type object;
+
+        timestamp_rule_type timestamp;
+        ping_event_rule_type ping_event;
+        message_rule_type message;
+        unknown_message_rule_type unknown_message;
+        message_event_rule_type message_event;
 
         Initializer::Initializer()
         {
@@ -126,6 +183,27 @@ namespace sc2pp {
                 byte_string | single_byte_integer | four_byte_integer | variable_length_integer
                 | array | map;
           
+            timestamp =
+                &byte_[_b = _1 & 0x3] >> byte_[_a = static_cast_<int>(_1) >> 2]
+                                      >> repeat(_b)[eps[_a <<= 8] >> byte_[_a += _1]]
+                                      >> eps[_val = _a];
+            
+            ping_event =
+                byte_(0x83) > little_dword[_a = _1] > little_dword[_b = _1] 
+                >> eps[_val = boost::phoenix::bind(ping_event_t::make, _r1, _r2, _a, _b)];
+            
+            message = 
+                &byte_[if_((_1 & 0x80) != 0)[_pass = false]]
+                > byte_[_b = static_cast_<message_t::target_t>(_1 & 0x3), _a = (_1 & 0x18) << 3] >> byte_[_a += _1]
+                >> as_string[repeat(_a)[byte_]][_val = boost::phoenix::bind(message_t::make, _r1, _r2, _b, _1)];
+
+            unknown_message =
+                byte_(0x80) > repeat(4)[byte_][_val = boost::phoenix::bind(unknown_message_t::make, _r1, _r2, vector_to_array(_1))];
+
+            message_event %= omit[timestamp[_a = _1] >> byte_[_b = _1 & 0xF]]
+                >> (ping_event(_a, _b) | message(_a, _b) | unknown_message(_a, _b));
+
+
 #define HANDLE_ERROR(X)                                                 \
             X.name(#X);                                                 \
             on_error<fail>(X, ::errorhandler<X##_rule_type::context_type>)
@@ -137,6 +215,11 @@ namespace sc2pp {
             HANDLE_ERROR(array);
             HANDLE_ERROR(map);
             HANDLE_ERROR(object);
+            HANDLE_ERROR(timestamp);
+            HANDLE_ERROR(message_event);
+            HANDLE_ERROR(ping_event);
+            HANDLE_ERROR(message);
+            HANDLE_ERROR(unknown_message);
         }
 
         static Initializer __initializer;

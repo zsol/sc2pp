@@ -38,6 +38,26 @@ namespace sc2pp { namespace parsers {
         extern array_rule_type array;
         extern map_rule_type map;
         extern object_rule_type object;
+
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        boost::spirit::qi::locals<int, num_t>,
+                                        num_t()> timestamp_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        boost::spirit::qi::locals<num_t, int>,
+                                        std::shared_ptr<message_event_t>()> message_event_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        boost::spirit::qi::locals<int, int>,
+                                        std::shared_ptr<message_event_t>(num_t, int)> ping_event_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        boost::spirit::qi::locals<int, message_t::target_t>,
+                                        std::shared_ptr<message_event_t>(num_t, int)> message_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        std::shared_ptr<message_event_t>(num_t, int)> unknown_message_rule_type;
+        extern timestamp_rule_type timestamp;
+        extern ping_event_rule_type ping_event;
+        extern message_rule_type message;
+        extern unknown_message_rule_type unknown_message;
+        extern message_event_rule_type message_event;
   
     } 
 }

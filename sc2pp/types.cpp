@@ -140,14 +140,10 @@ namespace sc2pp {
         }
 
     }
-
-    replay_t::replay_t(std::string const& inputFile)
+    
+    void
+    replay_t::read_details(mpq_archive_s* archive)
     {
-        read_header(inputFile);
-        mpq_archive_s* archive;
-        int ret = libmpq__archive_open(&archive, inputFile.c_str(), -1);
-        if (ret != 0) return; // TODO: signal error here
-
         unsigned int fileno = 0;
         long size = 0, actual_size = 0;
         libmpq__file_number(archive, "replay.details", &fileno);
@@ -204,6 +200,49 @@ namespace sc2pp {
 
     }
 
+    void
+    replay_t::read_messages(mpq_archive_s* archive)
+    {
+        unsigned int fileno = 0;
+        long size = 0, actual_size = 0;
+        libmpq__file_number(archive, "replay.message.events", &fileno);
+        libmpq__file_unpacked_size(archive, fileno, &size);
+        
+        std::unique_ptr<unsigned char[]> buf(new unsigned char[size]);
+        libmpq__file_read(archive, fileno, buf.get(), size, &actual_size);
+
+        object_type details;
+        const unsigned char
+            *begin = buf.get(),
+            *end = buf.get()+actual_size;
+
+        message_event_ptr event;
+        while (parse(begin, end, parsers::message_event, event))
+        {
+            messages.push_back(event);
+        }
+
+        if (begin != end)
+        {
+            std::cerr << "Junk detected at the end of replay.message.events!" << std::endl;
+            // TODO: signal error here
+            return;
+        }
+    }
+
+    replay_t::replay_t(std::string const& inputFile)
+    {
+        read_header(inputFile);
+        mpq_archive_s* archive;
+        int ret = libmpq__archive_open(&archive, inputFile.c_str(), -1);
+        if (ret != 0) return; // TODO: signal error here
+
+        read_details(archive);
+        read_messages(archive);
+    }
+
+    
+
     std::ostream& operator<<(std::ostream& stream, replay_t const & rep)
     {
         stream << "Replay version " << rep.version << ", build " 
@@ -216,6 +255,11 @@ namespace sc2pp {
             stream << player << "; ";
         }
         stream << "\n";
+        stream << "Messages: \n";
+        for ( message_event_ptr const & msg : rep.messages )
+        {
+            stream << msg << "\n";
+        }
         return stream;
     }
 
@@ -227,6 +271,58 @@ namespace sc2pp {
                << "BNet region: " << p.bnet_region << ", ID: " 
                << p.bnet_id << ", Handicap: " << p.handicap
                << ", Result: " << p.result;
+        return stream;
+    }
+
+    std::string 
+    message_event_t::asString() const
+    {
+        std::stringstream ss;
+        ss << timestamp << " - P" << player_id;
+        return ss.str();
+    }
+
+    std::string
+    ping_event_t::asString() const
+    {
+        std::stringstream ss;
+        ss << message_event_t::asString() << ": PING(" << x << ", " << y << ")";
+        return ss.str();
+    }
+
+    std::string
+    message_t::asString() const
+    {
+        std::stringstream ss;
+        ss << message_event_t::asString();
+        switch (target)
+        {
+        case ALL:
+            ss << "(To ALL)";
+            break;
+        case ALLIES:
+            ss << "(To Allies)";
+            break;
+        default:
+            ss << "(To Unknown)";
+            break;
+        }
+        ss << ": " << text;
+        return ss.str();
+    }
+
+    std::string
+    unknown_message_t::asString() const
+    {
+        std::stringstream ss;
+        ss << message_event_t::asString() << "(unknown message): " << std::hex << std::right;
+        for (unsigned char c : data) ss << static_cast<unsigned int>(c) << " ";
+        return ss.str();
+    }
+
+    std::ostream& operator<<(std::ostream& stream, message_event_ptr const & msg)
+    {
+        stream << msg->asString();
         return stream;
     }
 
