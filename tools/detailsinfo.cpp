@@ -82,6 +82,7 @@ int main(int argc, char** argv)
             buf.reset(new unsigned char[size]);
             libmpq__file_read(archive, fileno, buf.get(), size, &asize);
             actual_size = asize;
+            libmpq__archive_close(archive);
         }
         else
         {
