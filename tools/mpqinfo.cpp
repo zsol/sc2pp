@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <array>
-#include <sc2pp/types.h>
-#include <sc2pp/parsers.h>
+#include <sc2pp/detail/types.hpp>
+#include <sc2pp/detail/parsers.hpp>
 
 using namespace sc2pp::parsers;
 using namespace sc2pp;

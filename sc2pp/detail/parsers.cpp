@@ -1,11 +1,13 @@
 #include <boost/spirit/include/phoenix.hpp>
-#include <sc2pp/parsers.h>
+#include <sc2pp/detail/parsers.hpp>
 
 #include <array>
+
 
 using namespace boost::spirit::qi;
 using namespace boost::phoenix;
 using std::array;
+using sc2pp::detail::hugenum_t;
 
 namespace
 {
@@ -69,10 +71,10 @@ namespace
         template <typename Arg>
         struct result
         {
-            typedef sc2pp::hugenum_t type;
+            typedef hugenum_t type;
         };
         template <typename Arg>
-        sc2pp::hugenum_t operator()(Arg num) const
+        hugenum_t operator()(Arg num) const
         {
             return (num / 2) * (1 - 2 * (num % 2));
         }

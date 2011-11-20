@@ -3,9 +3,15 @@
 
 #include <boost/spirit/include/qi.hpp>
 
-#include <sc2pp/types.h>
+#include <sc2pp/detail/types.hpp>
+#include <sc2pp/types.hpp>
 
 namespace sc2pp { namespace parsers {
+        typedef sc2pp::detail::hugenum_t hugenum_t;
+        typedef sc2pp::detail::byte_array byte_array;
+        typedef sc2pp::detail::byte_map byte_map;
+        typedef sc2pp::detail::object_type object_type;
+
         /// ugly hack. TODO: refactor
         struct Initializer
         {

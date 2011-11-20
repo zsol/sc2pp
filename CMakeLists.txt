@@ -23,8 +23,8 @@ MESSAGE( STATUS "Building static:          " ${BUILD_STATIC} )
 MESSAGE( STATUS "Building tests:           " ${BUILD_TESTS}  )
 
 ############################## Sources ########################################
-FILE( GLOB_RECURSE Sources        sc2pp/*.cpp )
-FILE( GLOB_RECURSE Headers        sc2pp/*.hpp sc2pp/*.h )
+FILE( GLOB_RECURSE Sources        sc2pp/*.cpp sc2pp/detail/*.cpp)
+FILE( GLOB_RECURSE Headers        sc2pp/*.hpp sc2pp/*.h sc2pp/detail/*.hpp )
 
 # Group files in virtual folders under Visual Studio
 SOURCE_GROUP( "Sources"           FILES ${Sources} )
