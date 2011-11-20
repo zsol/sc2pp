@@ -93,6 +93,7 @@ namespace sc2pp {
         int handicap;
         result_t result;
     };
+    typedef std::shared_ptr<player_t> player_ptr;
 
     struct message_event_t
     {
@@ -160,6 +161,7 @@ namespace sc2pp {
         void read_details(mpq_archive_s* archive);
         void read_messages(mpq_archive_s* archive);
     };
+    typedef std::shared_ptr<replay_t> replay_ptr;
 
     std::ostream& operator<<(std::ostream& stream, replay_t const & rep);
     std::ostream& operator<<(std::ostream& stream, player_t const & rep);
