@@ -50,21 +50,56 @@ namespace sc2pp { namespace parsers {
                                         num_t()> timestamp_rule_type;
         typedef boost::spirit::qi::rule<const uint8_t*,
                                         boost::spirit::qi::locals<num_t, int>,
-                                        std::shared_ptr<message_event_t>()> message_event_rule_type;
+                                        message_event_ptr()> message_event_rule_type;
         typedef boost::spirit::qi::rule<const uint8_t*,
                                         boost::spirit::qi::locals<int, int>,
-                                        std::shared_ptr<message_event_t>(num_t, int)> ping_event_rule_type;
+                                        message_event_ptr(num_t, int)> ping_event_rule_type;
         typedef boost::spirit::qi::rule<const uint8_t*,
                                         boost::spirit::qi::locals<int, message_t::target_t>,
-                                        std::shared_ptr<message_event_t>(num_t, int)> message_rule_type;
+                                        message_event_ptr(num_t, int)> message_rule_type;
         typedef boost::spirit::qi::rule<const uint8_t*,
-                                        std::shared_ptr<message_event_t>(num_t, int)> unknown_message_rule_type;
+                                        message_event_ptr(num_t, int)> unknown_message_rule_type;
+
         extern timestamp_rule_type timestamp;
         extern ping_event_rule_type ping_event;
         extern message_rule_type message;
         extern unknown_message_rule_type unknown_message;
         extern message_event_rule_type message_event;
-  
+
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        std::vector<game_event_ptr>()> game_events_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        boost::spirit::qi::locals<num_t, int>,
+                                        game_event_ptr()> game_event_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        boost::spirit::qi::locals<int>,
+                                        game_event_ptr(num_t, int)> unknown_event_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        game_event_ptr(num_t, int)> initial_event_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        game_event_ptr(num_t, int)> player_joined_event_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        game_event_ptr(num_t, int)> game_started_event_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        game_event_ptr(num_t, int)> action_event_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        game_event_ptr(num_t, int)> player_left_event_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        boost::spirit::qi::locals<int, std::vector<num_t> >,
+                                        game_event_ptr(num_t, int)> resource_transfer_event_rule_type;
+        typedef boost::spirit::qi::rule<const uint8_t*,
+                                        num_t() > resource_rule_type;
+
+        extern game_events_rule_type game_events;
+        extern game_event_rule_type game_event;
+        extern unknown_event_rule_type unknown_event;
+        extern player_joined_event_rule_type player_joined_event;
+        extern game_started_event_rule_type game_started_event;
+        extern initial_event_rule_type initial_event;
+        extern action_event_rule_type action_event;
+        extern player_left_event_rule_type player_left_event;
+        extern resource_rule_type resource;
+        extern resource_transfer_event_rule_type resource_transfer_event;
     } 
 }
 

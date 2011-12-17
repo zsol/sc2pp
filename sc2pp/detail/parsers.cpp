@@ -44,10 +44,15 @@ namespace
                                             const unsigned char*, const info&> params, 
                       Context, error_handler_result)
     {
+        const int MAX_CONTEXT = 20;
         std::cerr << "Error! Expecting " << at_c<3>(params) << " here: ";
-        write_escaped(at_c<0>(params), at_c<2>(params), std::ostream_iterator<char>(std::cerr));
+        auto begin = at_c<0>(params), end = at_c<2>(params);
+        if (end - begin > MAX_CONTEXT) begin = end - MAX_CONTEXT;
+        write_escaped(begin, end, std::ostream_iterator<char>(std::cerr));
         std::cerr << " >>><<< ";
-        write_escaped(at_c<2>(params), at_c<1>(params), std::ostream_iterator<char>(std::cerr));
+        begin = at_c<2>(params); end = at_c<1>(params);
+        if (end - begin > MAX_CONTEXT) end = begin + MAX_CONTEXT;
+        write_escaped(begin, end, std::ostream_iterator<char>(std::cerr));
         std::cerr << std::endl;
     }
 
@@ -152,6 +157,17 @@ namespace sc2pp {
         unknown_message_rule_type unknown_message;
         message_event_rule_type message_event;
 
+        game_events_rule_type game_events;
+        game_event_rule_type game_event;
+        unknown_event_rule_type unknown_event;
+        player_joined_event_rule_type player_joined_event;
+        game_started_event_rule_type game_started_event;
+        initial_event_rule_type initial_event;
+        action_event_rule_type action_event;
+        player_left_event_rule_type player_left_event;
+        resource_transfer_event_rule_type resource_transfer_event;
+        resource_rule_type resource;
+
         Initializer::Initializer()
         {
             byte_string %=
@@ -205,6 +221,49 @@ namespace sc2pp {
             message_event %= omit[timestamp[_a = _1] >> byte_[_b = _1 & 0xF]]
                 >> (ping_event(_a, _b) | message(_a, _b) | unknown_message(_a, _b));
 
+            game_events %= *game_event;
+            
+            game_event %=
+                omit[timestamp[_a = _1] >> &byte_[_b = (static_cast_<int>(_1) >> 3) & 0x1f]] >>
+                initial_event(_a, _b) | action_event(_a, _b) |
+                unknown_event(_a, _b);
+
+            unknown_event = 
+                byte_[_a = _1 & 0x7] 
+                >> byte_[_val = boost::phoenix::bind(unknown_event_t::make, _r1, _r2, _a, _1)];
+
+            initial_event %=
+                omit[byte_[if_((_1 & 0x7) != 0)[_pass = false]]]
+                > player_joined_event(_r1, _r2) | game_started_event(_r1, _r2);
+
+            player_joined_event = 
+                (byte_(0xB) | byte_(0xC) | byte_(0x2C))
+                >> eps[_val = boost::phoenix::bind(player_joined_event_t::make, _r1, _r2)];
+
+            game_started_event =
+                byte_(0x5)
+                >> eps[_val = boost::phoenix::bind(game_started_event_t::make, _r1, _r2)];
+
+            action_event %=
+                omit[byte_[if_((_1 & 0x7) != 1)[_pass = false]]]
+                > player_left_event(_r1, _r2) | resource_transfer_event(_r1, _r2);
+
+            player_left_event =
+                byte_(0x9)
+                >> eps[_val = boost::phoenix::bind(player_left_event_t::make, _r1, _r2)];
+                
+            resource_transfer_event =
+                &byte_[if_((_1 & 0xf) != 0xf)[_pass = false]] >> byte_[_a = static_cast_<int>(_1) >> 4] >> 
+                byte_(0x84) >>
+                repeat(4)[resource][_val = boost::phoenix::bind(resource_transfer_event_t::make, _r1, _r2, _a, _1)];
+                                                             
+            resource = 
+                big_dword[_val = (static_cast_<num_t>(_1) >> 8) * (static_cast_<num_t>(_1) & 0xf0) + (static_cast_<num_t>(_1) & 0x0f)];
+
+
+            // camera_event %=
+            //     omit[byte_[if_((_1 & 0x7) != 3)[_pass = false]]];
+
 
 #define HANDLE_ERROR(X)                                                 \
             X.name(#X);                                                 \
@@ -222,6 +281,15 @@ namespace sc2pp {
             HANDLE_ERROR(ping_event);
             HANDLE_ERROR(message);
             HANDLE_ERROR(unknown_message);
+            HANDLE_ERROR(game_events);
+            HANDLE_ERROR(game_event);
+            HANDLE_ERROR(unknown_event);
+            HANDLE_ERROR(player_joined_event);
+            HANDLE_ERROR(game_started_event);
+            HANDLE_ERROR(initial_event);
+            HANDLE_ERROR(action_event);
+            HANDLE_ERROR(player_left_event);
+            HANDLE_ERROR(resource_transfer_event);
         }
 
         static Initializer __initializer;

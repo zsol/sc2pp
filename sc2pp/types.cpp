@@ -143,6 +143,29 @@ namespace sc2pp {
         }
     }
 
+    void
+    replay_t::read_events(mpq_archive_s* archive)
+    {
+        unsigned int fileno = 0;
+        long size = 0, actual_size = 0;
+        libmpq__file_number(archive, "replay.attributes.events", &fileno);
+        libmpq__file_unpacked_size(archive, fileno, &size);
+        
+        std::unique_ptr<unsigned char[]> buf(new unsigned char[size]);
+        libmpq__file_read(archive, fileno, buf.get(), size, &actual_size);
+
+        const unsigned char
+            *begin = buf.get(),
+            *end = buf.get()+actual_size;
+        
+        if (not parse(begin, end, parsers::game_events, events))
+        {
+            std::cerr << "Error while parsing game events" << std::endl;
+            // TODO: signal error here
+            return;
+        }
+    }
+
     replay_t::replay_t(std::string const& inputFile)
     {
         read_header(inputFile);
@@ -152,6 +175,7 @@ namespace sc2pp {
 
         read_details(archive);
         read_messages(archive);
+        read_events(archive);
     }
 
     

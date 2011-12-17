@@ -32,6 +32,90 @@ namespace sc2pp {
     };
     typedef std::shared_ptr<player_t> player_ptr;
 
+    struct game_event_t
+    {
+        game_event_t() {}
+        game_event_t(num_t const & ts, int pid) : timestamp(ts), player_id(pid) {}
+        num_t timestamp;
+        int player_id;
+
+        virtual ~game_event_t() {}
+    };
+    typedef std::shared_ptr<game_event_t> game_event_ptr;
+
+    struct unknown_event_t : public game_event_t
+    {
+        unknown_event_t() {}
+        unknown_event_t(num_t const & ts, int pid, int ty, int c) : game_event_t(ts, pid), type(ty), code(c) {}
+
+        static game_event_ptr make(num_t const & ts, int pid, int ty, int c) { return std::make_shared<unknown_event_t>(ts, pid, ty, c); }
+
+        int type;
+        int code;
+    };
+    typedef std::shared_ptr<unknown_event_t> unknown_event_ptr;
+
+    struct player_joined_event_t : public game_event_t
+    {
+        player_joined_event_t() {}
+        player_joined_event_t(num_t const & ts, int pid) : game_event_t(ts, pid) {}
+
+        static game_event_ptr make(num_t const & ts, int pid) { return std::make_shared<player_joined_event_t>(ts, pid); }
+    };
+    typedef std::shared_ptr<player_joined_event_t> player_joined_event_ptr;
+
+    struct player_left_event_t : public game_event_t
+    {
+        player_left_event_t() {}
+        player_left_event_t(num_t const & ts, int pid) : game_event_t(ts, pid) {}
+
+        static game_event_ptr make(num_t const & ts, int pid) { return std::make_shared<player_left_event_t>(ts, pid); }
+    };
+    typedef std::shared_ptr<player_left_event_t> player_left_event_ptr;
+
+    struct game_started_event_t : public game_event_t
+    {
+        game_started_event_t() {}
+        game_started_event_t(num_t const & ts, int pid) : game_event_t(ts, pid) {}
+
+        static game_event_ptr make(num_t const & ts, int pid) { return std::make_shared<game_started_event_t>(ts, pid); }
+    };
+    typedef std::shared_ptr<game_started_event_t> game_started_event_ptr;
+
+    struct camera_movement_event_t : public game_event_t
+    {
+    };
+    typedef std::shared_ptr<camera_movement_event_t> camera_movement_event_ptr;
+
+    struct resource_transfer_event_t : public game_event_t
+    {
+        typedef std::vector<num_t> resources_t;
+
+        resource_transfer_event_t() {}
+        resource_transfer_event_t(num_t const & ts, int pid, int tgt, resources_t const & res) : game_event_t(ts, pid), target(tgt), resources(res) {}
+
+        static game_event_ptr make(num_t const & ts, int pid, int tgt, resources_t const & res) { return std::make_shared<resource_transfer_event_t>(ts, pid, tgt, res); }
+
+        int target;
+        resources_t resources;
+    };
+    typedef std::shared_ptr<resource_transfer_event_t> resource_transfer_event_ptr;
+
+    struct hotkey_event_t : public game_event_t
+    {
+    };
+    typedef std::shared_ptr<hotkey_event_t> hotkey_event_ptr;
+
+    struct selection_event_t : public game_event_t
+    {
+    };
+    typedef std::shared_ptr<selection_event_t> selection_event_ptr;
+
+    struct ability_event_t : public game_event_t
+    {
+    };
+    typedef std::shared_ptr<ability_event_t> ability_event_ptr;
+
     struct message_event_t
     {
         message_event_t() {}
@@ -93,10 +177,12 @@ namespace sc2pp {
         boost::posix_time::ptime played_time;
         speed_t speed;
         std::vector<message_event_ptr> messages;
+        std::vector<game_event_ptr> events;
     private:
         void read_header(std::string const&);
         void read_details(mpq_archive_s* archive);
         void read_messages(mpq_archive_s* archive);
+        void read_events(mpq_archive_s* archive);
     };
     typedef std::shared_ptr<replay_t> replay_ptr;
 
