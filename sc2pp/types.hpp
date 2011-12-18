@@ -108,6 +108,53 @@ namespace sc2pp {
 
     struct selection_event_t : public game_event_t
     {
+        typedef std::vector<std::pair<int /*type*/, int/*id*/>> objects_t;
+
+        typedef std::function<void ()> selection_modifier_t;
+        typedef std::shared_ptr<selection_modifier_t> selection_modifier_ptr;
+
+        struct mask_t : public selection_modifier_t
+        {
+            mask_t(int msk) : mask(msk) {}      
+            void operator()();
+
+            static selection_modifier_ptr make(int msk) { return std::make_shared<mask_t>(msk); }
+
+            int mask;
+        };
+
+        struct deselect_t : public selection_modifier_t
+        {
+            typedef std::vector<int> indices_t;
+
+            deselect_t(indices_t const & ind) : indices(ind) {}
+            void operator()();
+            
+            static selection_modifier_ptr make(indices_t const & ind) { return std::make_shared<deselect_t>(ind); }
+            
+            indices_t indices;
+        };
+
+        struct replace_t : public selection_modifier_t
+        {
+            typedef std::vector<int> indices_t;
+
+            replace_t(indices_t const & ind) : indices(ind) {}
+            void operator()();
+
+            static selection_modifier_ptr make(indices_t const & ind) { return std::make_shared<replace_t>(ind); }
+            
+            indices_t indices;
+        };
+
+        selection_event_t() {}
+        selection_event_t(num_t const & ts, int pid, int s, objects_t const & objs, selection_modifier_ptr const & mod) : game_event_t(ts, pid), slot(s), objects(objs), modifier(mod) {}
+
+        static game_event_ptr make(num_t const & ts, int pid, int s, objects_t const & objs, selection_modifier_ptr const & mod) { return std::make_shared<selection_event_t>(ts, pid, s, objs, mod); }
+
+        int slot;
+        objects_t objects;
+        selection_modifier_ptr modifier;
     };
     typedef std::shared_ptr<selection_event_t> selection_event_ptr;
 

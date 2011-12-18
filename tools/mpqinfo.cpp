@@ -28,7 +28,7 @@ int main(int argc, char** argv)
     file.close();
 
     object_type header;
-    parse(begin, end, object, header);
+    parse(begin, end, object_grammar_t<typeof(begin)>(), header);
 
     try {
         byte_map& header_map = get<byte_map>(header);

@@ -42,19 +42,20 @@ int main(int argc, char** argv)
                                            0x00, 0x00, 0x53, 0x32, 0x04, 0x09, 0x02,
                                            0x08, 0x09, 0xf2, 0xbf, 0x50};
 
+  object_grammar_t<const uint8_t*> g;
   object_type obj;
-  assert(test(bytestring, byte_string, obj = std::string("Pille")));
-  assert(test(singlebyteinteger, single_byte_integer, obj = 38));
-  assert(test(fourbyteinteger, four_byte_integer, obj = 10649));
-  assert(test(vlinteger, variable_length_integer, obj = mpz_class(659449)));
-  assert(test(hugevlinteger, variable_length_integer, obj = (mpz_class(1) << 63)));
-  assert(test(bytearray, array, obj = byte_array(std::vector<object_type>({"Pille", 0x2a >> 1, 0xa6 >> 1, 0x46 * -1}))));
+  assert(test(bytestring, g.byte_string, obj = std::string("Pille")));
+  assert(test(singlebyteinteger, g.single_byte_integer, obj = 38));
+  assert(test(fourbyteinteger, g.four_byte_integer, obj = 10649));
+  assert(test(vlinteger, g.variable_length_integer, obj = mpz_class(659449)));
+  assert(test(hugevlinteger, g.variable_length_integer, obj = (mpz_class(1) << 63)));
+  assert(test(bytearray, g.array, obj = byte_array(std::vector<object_type>({"Pille", 0x2a >> 1, 0xa6 >> 1, 0x46 * -1}))));
   byte_map bytemap_result;
   bytemap_result.map[0] = mpz_class(2);
   bytemap_result.map[1] = 10649;
   bytemap_result.map[2] = mpz_class(1);
   bytemap_result.map[4] = mpz_class(659449);
-  assert(test(bytemap, map, obj = bytemap_result));
+  assert(test(bytemap, g.map, obj = bytemap_result));
 
   return 0;
 }

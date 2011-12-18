@@ -7,6 +7,7 @@
 
 #include <sc2pp/types.hpp>
 #include <sc2pp/detail/parsers.hpp>
+#include <sc2pp/detail/utils.hpp>
 
 using namespace boost;
 using namespace sc2pp::parsers;
@@ -33,7 +34,7 @@ namespace sc2pp {
         file.close();
 
         object_type header;
-        parse(begin, end, parsers::object, header);
+        parse(begin, end, parsers::object_grammar_t<typeof(begin)>(), header);
 
         try {
             byte_map& header_map = get<byte_map>(header);
@@ -69,7 +70,7 @@ namespace sc2pp {
         const unsigned char
             *begin = buf.get(),
             *end = buf.get()+actual_size;
-        if (not parse(begin, end, parsers::object, details))
+        if (not parse(begin, end, parsers::object_grammar_t<typeof(begin)>(), details))
         {
             std::cerr << "Failed to parse replay.details!" << std::endl;
             // TODO: signal error here
@@ -125,12 +126,12 @@ namespace sc2pp {
         libmpq__file_read(archive, fileno, buf.get(), size, &actual_size);
 
         object_type details;
-        const unsigned char
-            *begin = buf.get(),
-            *end = buf.get()+actual_size;
+        bitshift_iterator<const unsigned char*> 
+            begin(buf.get()),
+            end(buf.get()+actual_size);
 
         message_event_ptr event;
-        while (parse(begin, end, parsers::message_event, event))
+        while (parse(begin, end, parsers::message_grammar_t<typeof(begin)>(), event))
         {
             messages.push_back(event);
         }
@@ -158,7 +159,7 @@ namespace sc2pp {
             *begin = buf.get(),
             *end = buf.get()+actual_size;
         
-        if (not parse(begin, end, parsers::game_events, events))
+        if (not parse(begin, end, *parsers::game_event_grammar_t<typeof(begin)>(), events))
         {
             std::cerr << "Error while parsing game events" << std::endl;
             // TODO: signal error here
@@ -263,6 +264,20 @@ namespace sc2pp {
         return stream;
     }
 
+    void
+    selection_event_t::mask_t::operator()()
+    {
+    }
+
+    void
+    selection_event_t::deselect_t::operator()()
+    {
+    }
+
+    void
+    selection_event_t::replace_t::operator()()
+    {
+    }
 
 }
 

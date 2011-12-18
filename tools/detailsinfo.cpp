@@ -15,7 +15,7 @@ template <typename Iterator>
 void parse(Iterator begin, Iterator end)
 {
     sc2pp::detail::object_type details;
-    parse(begin, end, sc2pp::parsers::object, details);
+    parse(begin, end, sc2pp::parsers::object_grammar_t<Iterator>(), details);
     cout << details << endl;
 }
 
