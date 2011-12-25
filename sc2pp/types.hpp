@@ -34,7 +34,7 @@ namespace sc2pp {
 
     struct game_event_t
     {
-        game_event_t() {}
+        game_event_t() = default;
         game_event_t(num_t const & ts, int pid) : timestamp(ts), player_id(pid) {}
         num_t timestamp;
         int player_id;
@@ -45,7 +45,7 @@ namespace sc2pp {
 
     struct unknown_event_t : public game_event_t
     {
-        unknown_event_t() {}
+        unknown_event_t() = default;
         unknown_event_t(num_t const & ts, int pid, int ty, int c) : game_event_t(ts, pid), type(ty), code(c) {}
 
         static game_event_ptr make(num_t const & ts, int pid, int ty, int c) { return std::make_shared<unknown_event_t>(ts, pid, ty, c); }
@@ -91,7 +91,7 @@ namespace sc2pp {
     {
         typedef std::vector<num_t> resources_t;
 
-        resource_transfer_event_t() {}
+        resource_transfer_event_t() = default;
         resource_transfer_event_t(num_t const & ts, int pid, int tgt, resources_t const & res) : game_event_t(ts, pid), target(tgt), resources(res) {}
 
         static game_event_ptr make(num_t const & ts, int pid, int tgt, resources_t const & res) { return std::make_shared<resource_transfer_event_t>(ts, pid, tgt, res); }
@@ -147,7 +147,7 @@ namespace sc2pp {
             indices_t indices;
         };
 
-        selection_event_t() {}
+        selection_event_t() = default;
         selection_event_t(num_t const & ts, int pid, int s, objects_t const & objs, selection_modifier_ptr const & mod) : game_event_t(ts, pid), slot(s), objects(objs), modifier(mod) {}
 
         static game_event_ptr make(num_t const & ts, int pid, int s, objects_t const & objs, selection_modifier_ptr const & mod) { return std::make_shared<selection_event_t>(ts, pid, s, objs, mod); }
@@ -165,7 +165,7 @@ namespace sc2pp {
 
     struct message_event_t
     {
-        message_event_t() {}
+        message_event_t() = default;
         message_event_t(num_t const & ts, int pid) : timestamp(ts), player_id(pid) {}
         num_t timestamp;
         int player_id;
@@ -177,7 +177,7 @@ namespace sc2pp {
 
     struct ping_event_t : public message_event_t
     {
-        ping_event_t() {}
+        ping_event_t() = default;
         ping_event_t(num_t const & ts, int pid, int x_, int y_) : message_event_t(ts, pid), x(x_), y(y_) {}
         static std::shared_ptr<message_event_t> make(num_t const & ts, int pid, int x_, int y_) { return std::make_shared<ping_event_t>(ts, pid, x_, y_); }
         virtual std::string asString() const;
@@ -190,7 +190,7 @@ namespace sc2pp {
     {
         enum target_t { ALL = 0, ALLIES = 2 };
 
-        message_t() {}
+        message_t() = default;
         message_t(num_t const & ts, int pid, target_t tgt, const std::string& str) : message_event_t(ts, pid),
                                                                                      target(tgt), text(str) {}
         static std::shared_ptr<message_event_t> make(num_t const & ts, int pid, target_t tgt, const std::string& str) { return std::make_shared<message_t>(ts, pid, tgt, str); }
