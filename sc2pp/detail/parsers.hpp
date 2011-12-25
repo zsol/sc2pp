@@ -52,7 +52,7 @@ namespace sc2pp { namespace parsers {
                           Context, boost::spirit::qi::error_handler_result)
         {
             using boost::phoenix::at_c;
-            const int MAX_CONTEXT = 20;
+            // const int MAX_CONTEXT = 20;
             std::cerr << "Error! Expecting " << at_c<3>(params) << " here: ";
             auto begin = at_c<0>(params), end = at_c<2>(params);
             // if (end - begin > MAX_CONTEXT) begin = end - MAX_CONTEXT;
@@ -108,7 +108,7 @@ namespace sc2pp { namespace parsers {
             typename result<Arg>::type operator()(Arg a) const
             {
                 typename result<Arg>::type ret;
-                for (int i = 0; i < ret.size() && i < a.size(); ++i)
+                for (size_t i = 0; i < ret.size() && i < a.size(); ++i)
                 {
                     ret[i] = a[i];
                 }
@@ -136,6 +136,8 @@ namespace sc2pp { namespace parsers {
                 using boost::spirit::_pass;
                 using boost::phoenix::static_cast_;
                 using boost::phoenix::if_;
+
+#pragma GCC diagnostic ignored "-Wparentheses"
                 
                 byte_string %=
                     omit[byte_(0x2)] > omit[byte_[_a = _1/2]] > repeat(_a)[byte_];
@@ -167,6 +169,8 @@ namespace sc2pp { namespace parsers {
                 object %=  
                     byte_string | single_byte_integer | four_byte_integer | variable_length_integer
                     | array | map;
+
+#pragma GCC diagnostic pop
 
                 HANDLE_ERROR(byte_string);
                 HANDLE_ERROR(single_byte_integer);
@@ -218,10 +222,13 @@ namespace sc2pp { namespace parsers {
                 using boost::spirit::_b;
                 using boost::phoenix::static_cast_;
 
+#pragma GCC diagnostic ignored "-Wparentheses"
+                
                 timestamp =
                     &byte_[_b = _1 & 0x3] >> byte_[_a = static_cast_<int>(_1) >> 2]
                                           >> repeat(_b)[eps[_a <<= 8] >> byte_[_a += _1]]
                                           >> eps[_val = _a];
+#pragma GCC diagnostic pop
 
                 HANDLE_ERROR(timestamp);
             }
@@ -259,6 +266,8 @@ namespace sc2pp { namespace parsers {
                 using boost::phoenix::if_;
                 using boost::phoenix::bind;
                             
+#pragma GCC diagnostic ignored "-Wparentheses"
+                
                 ping_event =
                     byte_(0x83) > little_dword[_a = _1] > little_dword[_b = _1] 
                     >> eps[_val = bind(ping_event_t::make, _r1, _r2, _a, _b)];
@@ -273,6 +282,8 @@ namespace sc2pp { namespace parsers {
 
                 message_event %= omit[timestamp[_a = _1] >> byte_[_b = _1 & 0xF]]
                     >> (ping_event(_a, _b) | message(_a, _b) | unknown_message(_a, _b));
+
+#pragma GCC diagnostic pop
 
                 HANDLE_ERROR(message_event);
                 HANDLE_ERROR(ping_event);
@@ -323,6 +334,8 @@ namespace sc2pp { namespace parsers {
                 using boost::phoenix::if_;
                 using boost::phoenix::bind;
 
+#pragma GCC diagnostic ignored "-Wparentheses"
+                
                 game_event %=
                     omit[timestamp[_a = _1] >> &byte_[_b = (static_cast_<int>(_1) >> 3) & 0x1f]] >>
                     initial_event(_a, _b) | action_event(_a, _b) |
@@ -363,6 +376,8 @@ namespace sc2pp { namespace parsers {
 
                 // camera_event %=
                 //     omit[byte_[if_((_1 & 0x7) != 3)[_pass = false]]];
+
+#pragma GCC diagnostic pop
 
                 HANDLE_ERROR(game_event);
                 HANDLE_ERROR(unknown_event);

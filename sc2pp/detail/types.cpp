@@ -41,6 +41,7 @@ namespace sc2pp { namespace detail {
                 if (n < max) return n.get_si();
                 // TODO: else signal error!
             }
+            assert(false); //should never happen
         }
 
         bool byte_array::operator==(byte_array const & other) const 

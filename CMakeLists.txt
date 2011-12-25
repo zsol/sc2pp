@@ -32,7 +32,9 @@ SOURCE_GROUP( "Headers"           FILES ${Headers} )
 
 ############################## External libraries #############################
 # 
-ADD_DEFINITIONS( -std=gnu++0x )
+IF (CMAKE_COMPILER_IS_GNUCXX)
+  set(CMAKE_CXX_FLAGS "-std=gnu++0x -Wall -Wextra -Werror")
+ENDIF()
 INCLUDE( FindBoost )
 SET( Boost_USE_MULTITHREADED ON )
 SET( Boost_USE_STATIC_LIBS   ON )

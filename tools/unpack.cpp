@@ -29,6 +29,11 @@ getFile(mpq_archive_s* archive, const std::string& filename_)
 
 int main( int argc, char** argv )
 {
+    if (argc != 2)
+    {
+        std::cerr << "Missing argument (file to open)" << std::endl;
+    }
+
     mpq_archive_s *a;
     if (libmpq__archive_open(&a, argv[1], -1) != 0)
     {
