@@ -28,7 +28,7 @@ int main(int argc, char** argv)
     desc.add_options()
         ("help", "display this help message")
         ("input", po::value<vector<string>>(), "input file(s)")
-        ("mpq", "treat input file as an MPQ archive (SC2Replay file), not as the replay.attributes.events file")
+        ("mpq", "treat input file as an MPQ archive (SC2Replay file), not as the replay.game.events file")
         ;
     posdesc.add("input", -1);
     po::store(po::command_line_parser(argc, argv)
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
             }
             unsigned int fileno = 0;
             long size = 0, asize = 0;
-            libmpq__file_number(archive, "replay.attributes.events", &fileno);
+            libmpq__file_number(archive, "replay.game.events", &fileno);
             libmpq__file_unpacked_size(archive, fileno, &size);
             buf.reset(new unsigned char[size]);
             libmpq__file_read(archive, fileno, buf.get(), size, &asize);

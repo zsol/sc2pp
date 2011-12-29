@@ -337,17 +337,23 @@ namespace sc2pp { namespace parsers {
 #pragma GCC diagnostic ignored "-Wparentheses"
                 
                 game_event %=
-                    omit[timestamp[_a = _1] >> &byte_[_b = (static_cast_<int>(_1) >> 3) & 0x1f]] >>
-                    initial_event(_a, _b) | action_event(_a, _b) |
-                    unknown_event(_a, _b);
+                        omit[timestamp[_a = _1] >> &byte_[_b = (static_cast_<int>(_1) >> 3) & 0x1f]] >
+                        (
+                            initial_event(_a, _b) |
+                            action_event(_a, _b) |
+                            unknown_event(_a, _b)
+                        );
 
                 unknown_event = 
                     byte_[_a = _1 & 0x7] 
                     >> byte_[_val = bind(unknown_event_t::make, _r1, _r2, _a, _1)];
 
                 initial_event %=
-                    omit[byte_[if_((_1 & 0x7) != 0)[_pass = false]]]
-                    > player_joined_event(_r1, _r2) | game_started_event(_r1, _r2);
+                        omit[byte_[if_((_1 & 0x7) != 0)[_pass = false]]] >
+                        (
+                            player_joined_event(_r1, _r2) |
+                            game_started_event(_r1, _r2)
+                        );
 
                 player_joined_event = 
                     (byte_(0xB) | byte_(0xC) | byte_(0x2C))
@@ -358,8 +364,11 @@ namespace sc2pp { namespace parsers {
                     >> eps[_val = bind(game_started_event_t::make, _r1, _r2)];
 
                 action_event %=
-                    omit[byte_[if_((_1 & 0x7) != 1)[_pass = false]]]
-                    > player_left_event(_r1, _r2) | resource_transfer_event(_r1, _r2);
+                        omit[byte_[if_((_1 & 0x7) != 1)[_pass = false]]] >
+                        (
+                            player_left_event(_r1, _r2) |
+                            resource_transfer_event(_r1, _r2)
+                        );
 
                 player_left_event =
                     byte_(0x9)
