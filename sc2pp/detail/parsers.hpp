@@ -1,5 +1,5 @@
-#ifndef SC2PP_PARSERS_H
-#define SC2PP_PARSERS_H
+#ifndef SC2PP_DETAIL_PARSERS_H
+#define SC2PP_DETAIL_PARSERS_H
 
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
@@ -94,9 +94,6 @@ namespace sc2pp { namespace parsers {
         
         };
     
-        boost::phoenix::function<apply_sign_impl> apply_sign;
-        boost::phoenix::function<apply_huge_sign_impl> apply_huge_sign;
-
         struct vector_to_array_impl
         {
             template <typename Arg>
@@ -115,8 +112,6 @@ namespace sc2pp { namespace parsers {
                 return ret;
             }
         };
-
-        boost::phoenix::function<vector_to_array_impl> vector_to_array;
 
         template <typename Iterator>
         struct object_grammar_t : public boost::spirit::qi::grammar<Iterator, object_type()>
@@ -201,6 +196,9 @@ namespace sc2pp { namespace parsers {
                                     byte_map()> map;
             boost::spirit::qi::rule<Iterator,
                                     object_type()> object;
+
+            boost::phoenix::function<apply_sign_impl> apply_sign;
+            boost::phoenix::function<apply_huge_sign_impl> apply_huge_sign;
 
         };
 
@@ -305,6 +303,8 @@ namespace sc2pp { namespace parsers {
                                     message_event_ptr(num_t, int)> message;
             boost::spirit::qi::rule<Iterator,
                                     message_event_ptr(num_t, int)> unknown_message;
+
+            boost::phoenix::function<vector_to_array_impl> vector_to_array;
         };
 
 

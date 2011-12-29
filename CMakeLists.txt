@@ -15,7 +15,7 @@ SET( SC2pp_PATCH_LEVEL   0 )
 
 ############################## Modules configuration ##########################
 OPTION( BUILD_DOC    "Build the doxygen documentation"         ON  )
-OPTION( BUILD_STATIC "Build as a static library"               ON  )
+OPTION( BUILD_STATIC "Build as a static library"               OFF  )
 OPTION( BUILD_TESTS  "Build the tests"                         ON  )
 
 MESSAGE( STATUS "Building documentation:   " ${BUILD_DOC}    )

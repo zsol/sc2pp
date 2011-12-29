@@ -2,7 +2,7 @@
 #include <fstream>
 #include <memory>
 #include <sc2pp/detail/types.hpp>
-#include <sc2pp/detail/parsers.hpp>
+#include <sc2pp/parsers.hpp>
 
 #include <boost/program_options.hpp>
 
@@ -14,8 +14,7 @@ namespace po = boost::program_options;
 template <typename Iterator>
 void parse(Iterator begin, Iterator end)
 {
-    sc2pp::detail::object_type details;
-    parse(begin, end, sc2pp::parsers::object_grammar_t<Iterator>(), details);
+    sc2pp::detail::object_type details = sc2pp::parse_details(begin, end);
     cout << details << endl;
 }
 

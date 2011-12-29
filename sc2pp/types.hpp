@@ -7,6 +7,8 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include <libmpq/mpq.h>
+
 namespace sc2pp {
 
     typedef long num_t;
