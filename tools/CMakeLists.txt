@@ -12,3 +12,6 @@ TARGET_LINK_LIBRARIES( messages SC2pp )
 
 ADD_EXECUTABLE( replay replay.cpp )
 TARGET_LINK_LIBRARIES( replay SC2pp )
+
+ADD_EXECUTABLE( events events.cpp )
+TARGET_LINK_LIBRARIES( events SC2pp )
