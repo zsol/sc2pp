@@ -23,15 +23,13 @@ MESSAGE( STATUS "Building static:          " ${BUILD_STATIC} )
 MESSAGE( STATUS "Building tests:           " ${BUILD_TESTS}  )
 
 ############################## Sources ########################################
-FILE( GLOB_RECURSE Sources        sc2pp/*.cpp sc2pp/detail/*.cpp)
-FILE( GLOB_RECURSE Headers        sc2pp/*.hpp sc2pp/*.h sc2pp/detail/*.hpp )
+FILE( GLOB_RECURSE Sources        sc2pp/*.cpp sc2pp/detail/*.cpp sc2pp/*.hpp sc2pp/*.h sc2pp/detail/*.hpp )
 
 # Group files in virtual folders under Visual Studio
 SOURCE_GROUP( "Sources"           FILES ${Sources} )
-SOURCE_GROUP( "Headers"           FILES ${Headers} )
 
 ############################## External libraries #############################
-# 
+#
 IF (CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "-std=gnu++0x -Wall -Wextra -Werror")
 ENDIF()
