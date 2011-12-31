@@ -54,15 +54,16 @@ void errorhandler(boost::fusion::vector<Iterator, Iterator,
 {
     using boost::phoenix::at_c;
     // const int MAX_CONTEXT = 20;
-    std::cerr << "Error! Expecting " << at_c<3>(params) << " here: ";
+    std::stringstream ss;
+    ss << "Expecting " << at_c<3>(params) << " here: ";
     auto begin = at_c<0>(params), end = at_c<2>(params);
     // if (end - begin > MAX_CONTEXT) begin = end - MAX_CONTEXT;
-    write_escaped(begin, end, std::ostream_iterator<char>(std::cerr));
-    std::cerr << " >>><<< ";
+    write_escaped(begin, end, std::ostream_iterator<char>(ss));
+    ss << " >>><<< ";
     begin = at_c<2>(params); end = at_c<1>(params);
     // if (end - begin > MAX_CONTEXT) end = begin + MAX_CONTEXT;
-    write_escaped(begin, end, std::ostream_iterator<char>(std::cerr));
-    std::cerr << std::endl;
+    write_escaped(begin, end, std::ostream_iterator<char>(ss));
+    throw parse_error(ss.str());
 }
 
 struct apply_sign_impl

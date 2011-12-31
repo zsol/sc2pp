@@ -10,7 +10,8 @@ using sc2pp::detail::object_type;
 
 namespace sc2pp
 {
-    vector<game_event_ptr> parse_events(const unsigned char* begin, const unsigned char* end)
+    vector<game_event_ptr> unsafe_parse_events(const unsigned char* begin,
+                                               const unsigned char* end)
     {
         vector<game_event_ptr> ret;
         bitshift_iterator<const unsigned char*> bitbegin(begin), bitend(end);
@@ -18,4 +19,16 @@ namespace sc2pp
         return ret;
     }
 
+    vector<game_event_ptr> parse_events(const unsigned char *begin,
+                                        const unsigned char *end)
+    {
+        try {
+            return unsafe_parse_events(begin, end);
+        } catch (parse_error const & err)
+        {
+            std::cerr << "Error while parsing game events: "
+                      << err.what() << std::endl;
+            return vector<game_event_ptr>();
+        }
+    }
 }
