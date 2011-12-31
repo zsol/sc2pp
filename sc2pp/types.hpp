@@ -13,6 +13,8 @@ namespace sc2pp {
 
     typedef long num_t;
 
+    typedef std::domain_error parse_error;
+
     struct color_t
     {
         int r;
