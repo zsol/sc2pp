@@ -2,11 +2,11 @@
 #include <fstream>
 #include <array>
 #include <sc2pp/detail/types.hpp>
-#include <sc2pp/detail/parsers.hpp>
+#include <sc2pp/parsers.hpp>
 
-using namespace sc2pp::parsers;
 using namespace sc2pp;
 using namespace boost;
+using namespace sc2pp::detail;
 
 int main(int argc, char** argv)
 {
@@ -27,8 +27,7 @@ int main(int argc, char** argv)
         *end = reinterpret_cast<std::array<unsigned char, BUFSIZE>::iterator>(buf.begin()) + file.tellg();
     file.close();
 
-    object_type header;
-    parse(begin, end, object_grammar_t<typeof(begin)>(), header);
+    object_type header = parse_details(begin, end);
 
     try {
         byte_map& header_map = get<byte_map>(header);

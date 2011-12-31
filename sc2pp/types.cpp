@@ -6,7 +6,12 @@
 #include <libmpq/mpq.h>
 
 #include <sc2pp/types.hpp>
-#include <sc2pp/detail/parsers.hpp>
+#include <sc2pp/parsers.hpp>
+#include <sc2pp/detail/parsers_common.hpp>
+#include <sc2pp/detail/parsers_game_event.hpp>
+#include <sc2pp/detail/parsers_message.hpp>
+#include <sc2pp/detail/parsers_object.hpp>
+#include <sc2pp/detail/parsers_timestamp.hpp>
 #include <sc2pp/detail/utils.hpp>
 
 using namespace boost;
@@ -33,8 +38,7 @@ namespace sc2pp {
             *end = reinterpret_cast<std::array<unsigned char, BUFSIZE>::iterator>(buf.begin()) + file.tellg();
         file.close();
 
-        object_type header;
-        parse(begin, end, parsers::object_grammar_t<typeof(begin)>(), header);
+        object_type header = parse_details(begin, end);
 
         try {
             byte_map& header_map = get<byte_map>(header);
@@ -70,12 +74,13 @@ namespace sc2pp {
         const unsigned char
             *begin = buf.get(),
             *end = buf.get()+actual_size;
-        if (not parse(begin, end, parsers::object_grammar_t<typeof(begin)>(), details))
-        {
-            std::cerr << "Failed to parse replay.details!" << std::endl;
-            // TODO: signal error here
-            return;
-        }
+        details = parse_details(begin, end);
+//        if (not parse(begin, end, parsers::object_grammar_t<typeof(begin)>(), details))
+//        {
+//            std::cerr << "Failed to parse replay.details!" << std::endl;
+//            // TODO: signal error here
+//            return;
+//        }
 
         try {
             auto& details_data = boost::get<byte_map>(details);
@@ -130,11 +135,12 @@ namespace sc2pp {
             begin(buf.get()),
             end(buf.get()+actual_size);
 
-        message_event_ptr event;
-        while (parse(begin, end, parsers::message_grammar_t<typeof(begin)>(), event))
-        {
-            messages.push_back(event);
-        }
+        messages = parse_messages(buf.get(), buf.get()+actual_size);
+//        message_event_ptr event;
+//        while (parse(begin, end, parsers::message_grammar_t<typeof(begin)>(), event))
+//        {
+//            messages.push_back(event);
+//        }
 
         if (begin != end)
         {
@@ -158,13 +164,13 @@ namespace sc2pp {
         const unsigned char
             *begin = buf.get(),
             *end = buf.get()+actual_size;
-        
-        if (not parse(begin, end, *parsers::game_event_grammar_t<typeof(begin)>(), events))
-        {
-            std::cerr << "Error while parsing game events" << std::endl;
-            // TODO: signal error here
-            return;
-        }
+        events = parse_events(begin, end);
+//        if (not parse(begin, end, *parsers::game_event_grammar_t<typeof(begin)>(), events))
+//        {
+//            std::cerr << "Error while parsing game events" << std::endl;
+//            // TODO: signal error here
+//            return;
+//        }
     }
 
     replay_t::replay_t(std::string const& inputFile)
