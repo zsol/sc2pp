@@ -6,6 +6,7 @@
 #include <array>
 
 #include <sc2pp/detail/types.hpp>
+#include <sc2pp/detail/utils.hpp>
 #include <sc2pp/types.hpp>
 
 namespace sc2pp { namespace parsers {
@@ -45,26 +46,53 @@ OutIter write_escaped(InIter begin, const InIter end, OutIter out) {
 
 #define HANDLE_ERROR(X)                                                         \
     X.name(#X);                                                                 \
-    boost::spirit::qi::on_error<boost::spirit::qi::fail>(X, errorhandler<boost::spirit::unused_type, Iterator>)
+    boost::spirit::qi::on_error<boost::spirit::qi::fail>(X, errorhandler<boost::spirit::unused_type, Iterator>())
 
 template <typename Context, typename Iterator>
-void errorhandler(boost::fusion::vector<Iterator, Iterator,
-                  Iterator, const boost::spirit::info&> params,
-                  Context, boost::spirit::qi::error_handler_result)
+struct errorhandler
 {
-    using boost::phoenix::at_c;
-    // const int MAX_CONTEXT = 20;
-    std::stringstream ss;
-    ss << "Expecting " << at_c<3>(params) << " here: ";
-    auto begin = at_c<0>(params), end = at_c<2>(params);
-    // if (end - begin > MAX_CONTEXT) begin = end - MAX_CONTEXT;
-    write_escaped(begin, end, std::ostream_iterator<char>(ss));
-    ss << " >>><<< ";
-    begin = at_c<2>(params); end = at_c<1>(params);
-    // if (end - begin > MAX_CONTEXT) end = begin + MAX_CONTEXT;
-    write_escaped(begin, end, std::ostream_iterator<char>(ss));
-    throw parse_error(ss.str());
-}
+    void operator()(boost::fusion::vector<Iterator, Iterator,
+                    Iterator, const boost::spirit::info&> params,
+                    Context, boost::spirit::qi::error_handler_result) const
+    {
+        using boost::phoenix::at_c;
+        std::stringstream ss;
+        // const int MAX_CONTEXT = 20;
+        ss << "Error! Expecting " << at_c<3>(params) << " here: ";
+        auto begin = at_c<0>(params), end = at_c<2>(params);
+        // if (end - begin > MAX_CONTEXT) begin = end - MAX_CONTEXT;
+        write_escaped(begin, end, std::ostream_iterator<char>(ss));
+        ss << " >>><<< ";
+        begin = at_c<2>(params); end = at_c<1>(params);
+        // if (end - begin > MAX_CONTEXT) end = begin + MAX_CONTEXT;
+        write_escaped(begin, end, std::ostream_iterator<char>(ss));
+        throw parse_error(ss.str());
+    }
+};
+
+template <typename Context, typename Iterator>
+struct errorhandler<Context, bitshift_iterator<Iterator> >
+{
+    typedef bitshift_iterator<Iterator> iterator_type;
+    void operator()(boost::fusion::vector<iterator_type, iterator_type,
+                    iterator_type, const boost::spirit::info&> params,
+                    Context, boost::spirit::qi::error_handler_result) const
+    {
+        using boost::phoenix::at_c;
+        const int MAX_CONTEXT = 20;
+        std::stringstream ss;
+        auto error_pos = at_c<2>(params);
+        ss << "Error at offset " << std::hex << error_pos.offset()
+                  << std::dec;
+        if (error_pos.shift())
+            ss << " (shifted by " << error_pos.shift() << ")";
+        ss << ". Expecting " << at_c<3>(params) << "; got ";
+        auto end = at_c<2>(params);
+        for (int i = 0; i < MAX_CONTEXT && end != at_c<1>(params); ++i, ++end);
+        write_escaped(error_pos, end, std::ostream_iterator<char>(ss));
+        throw parse_error(ss.str());
+    }
+};
 
 struct apply_sign_impl
 {

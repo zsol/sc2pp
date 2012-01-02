@@ -6,7 +6,7 @@
 
 #include <boost/spirit/include/phoenix.hpp>
 
-#include <sc2pp/detail/parsers.hpp>
+#include <sc2pp/detail/parsers_object.hpp>
 
 using namespace sc2pp::parsers;
 using namespace sc2pp;

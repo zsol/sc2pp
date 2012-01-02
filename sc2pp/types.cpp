@@ -155,7 +155,7 @@ namespace sc2pp {
     {
         unsigned int fileno = 0;
         long size = 0, actual_size = 0;
-        libmpq__file_number(archive, "replay.attributes.events", &fileno);
+        libmpq__file_number(archive, "replay.game.events", &fileno);
         libmpq__file_unpacked_size(archive, fileno, &size);
         
         std::unique_ptr<unsigned char[]> buf(new unsigned char[size]);
@@ -164,6 +164,7 @@ namespace sc2pp {
         const unsigned char
             *begin = buf.get(),
             *end = buf.get()+actual_size;
+
         events = parse_events(begin, end);
 //        if (not parse(begin, end, *parsers::game_event_grammar_t<typeof(begin)>(), events))
 //        {

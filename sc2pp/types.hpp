@@ -6,6 +6,7 @@
 #include <iosfwd>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/dynamic_bitset.hpp>
 
 #include <libmpq/mpq.h>
 
@@ -119,12 +120,13 @@ namespace sc2pp {
 
         struct mask_t : public selection_modifier_t
         {
-            mask_t(int msk) : mask(msk) {}      
+            typedef boost::dynamic_bitset<unsigned char> bitmask_t;
+            mask_t(bitmask_t mask) : mask(mask) {}
             void operator()();
 
-            static selection_modifier_ptr make(int msk) { return std::make_shared<mask_t>(msk); }
+            static selection_modifier_ptr make(bitmask_t mask) { return std::make_shared<mask_t>(mask); }
 
-            int mask;
+            bitmask_t mask;
         };
 
         struct deselect_t : public selection_modifier_t
