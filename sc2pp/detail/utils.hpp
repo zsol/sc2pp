@@ -82,7 +82,8 @@ public:
   {
     assert(s <= 8);
     value_type ret = 0;
-    if (s + _shift > 8)
+    if (_shift == 0) { _buf = *_iter++; }
+    else if (s + _shift > 8)
     {
       // save the part contained in the first byte
       ret = _buf & HI_MASK[8 - _shift];
@@ -95,11 +96,13 @@ public:
       // s < 8 holds from now on
     }
     const unsigned char mask = LO_MASK[s + _shift] ^ LO_MASK[_shift];
-    ret |= _buf & mask >> (8 - s);
+    ret |= (_buf & mask) >> _shift;
     _buf &= 0xff ^ mask;
     _buf |= *_iter & mask;
-    _shift -= s;
+    _shift += s;
     _shift %= 8;
+
+    if (_shift == 0) { ++_offset; }
 
     return ret;
   }
@@ -110,7 +113,7 @@ public:
 private:
   size_t _offset;
   size_t _shift;
-  iterator_type _iter;
+  iterator_type _iter; // points to the byte which contains the 8th next bit
   value_type _buf; // contains the next 8 bits if _shift != 0
 
   // static constexpr unsigned char LO_MASK[]; 
