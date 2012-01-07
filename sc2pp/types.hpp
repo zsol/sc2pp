@@ -89,8 +89,14 @@ namespace sc2pp {
     };
     typedef std::shared_ptr<game_started_event_t> game_started_event_ptr;
 
+    /**
+      \todo Flesh out camera movement details
+      */
     struct camera_movement_event_t : public game_event_t
     {
+        camera_movement_event_t() {}
+        camera_movement_event_t(num_t const & ts, int pid) : game_event_t(ts, pid) {}
+        static game_event_ptr make(num_t const& ts, int pid) { return std::make_shared<camera_movement_event_t>(ts, pid); }
     };
     typedef std::shared_ptr<camera_movement_event_t> camera_movement_event_ptr;
 

@@ -40,7 +40,7 @@ struct game_event_grammar_t
                     (bits(3, 0x0) > initial_event(_a, _b)) |
                     (bits(3, 0x1) > action_event(_a, _b)) |
                     (bits(3, 0x2) > unknown_event(_a, _b)) |
-                    (bits(3, 0x3) > eps[_pass = false])
+                    (bits(3, 0x3) > camera_event(_a, _b))
                 );
 
         unknown_event =
@@ -73,9 +73,9 @@ struct game_event_grammar_t
             > eps[_val = bind(player_left_event_t::make, _r1, _r2)];
 
         resource_transfer_event =
-            &byte_[if_((_1 & 0xf) != 0xf)[_pass = false]] > byte_[_a = static_cast_<int>(_1) >> 4] >>
-            byte_(0x84) >>
-            repeat(4)[resource][_val = bind(resource_transfer_event_t::make, _r1, _r2, _a, _1)];
+                bits(4, 0xf) > bits(4)[_a = _1] >
+                byte_(0x84) >
+                repeat(4)[resource][_val = bind(resource_transfer_event_t::make, _r1, _r2, _a, _1)];
 
         resource =
             big_dword[_val = (static_cast_<num_t>(_1) >> 8) * (static_cast_<num_t>(_1) & 0xf0) + (static_cast_<num_t>(_1) & 0x0f)];
@@ -113,8 +113,18 @@ struct game_event_grammar_t
 
         byteint = byte_[_val = static_cast_<int>(_1)];
 
-        // camera_event %=
-        //     omit[byte_[if_((_1 & 0x7) != 3)[_pass = false]]];
+        camera_event =
+                (
+                    (byte_(0x87) > repeat(0, 2)[big_word[_pass = (_1 & 0xf0)]] > big_word) |
+                    (byte_(0x0a) > eps[_pass = false]) | // TODO
+                    (bits(4, 0x8) > byteint[_a = _1] > bits(4) > repeat(_a*4+1)[byte_]) |
+                    (bits(4, 0x1) > bits(4) > repeat(3)[byte_] > (
+                         (bits(4) >> bits(1, 0x1) >> bits(3) > byte_) ||
+                         (bits(5) >> bits(1, 0x1) >> bits(2) > byte_) ||
+                         (bits(6) >> bits(1, 0x1) >> bits(1) > byte_ > byte_)
+                         ) )
+
+                )[_val = bind(camera_movement_event_t::make, _r1, _r2)];
 
 
         HANDLE_ERROR(game_event);
@@ -126,6 +136,7 @@ struct game_event_grammar_t
         HANDLE_ERROR(player_left_event);
         HANDLE_ERROR(resource_transfer_event);
         HANDLE_ERROR(selection_event);
+        HANDLE_ERROR(camera_event);
         // boost::spirit::qi::on_error<boost::spirit::qi::fail>(*this, errorhandler<boost::spirit::unused_type, Iterator>);
 
     }
@@ -172,6 +183,9 @@ struct game_event_grammar_t
     boost::spirit::qi::rule<Iterator,
             boost::spirit::qi::locals<int>,
             int()> type;
+    boost::spirit::qi::rule<Iterator,
+            boost::spirit::qi::locals<int>,
+            game_event_ptr(num_t, int)> camera_event;
 
     struct make_selection_event_impl
     {
