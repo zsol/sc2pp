@@ -10,6 +10,47 @@
 #include <sc2pp/types.hpp>
 
 namespace sc2pp { namespace parsers {
+template <typename Char, typename OutIter>
+OutIter escape_char(Char c, OutIter out)
+{
+    auto uc = static_cast<unsigned char>(c);
+    if (' ' <= uc and uc <= '~' and uc != '\\' and uc != '"') {
+        *out++ = static_cast<char>(uc);
+    }
+    else {
+        *out++ = '\\';
+        switch(uc) {
+        case '"':  *out++ = '"';  break;
+        case '\\': *out++ = '\\'; break;
+        case '\t': *out++ = 't';  break;
+        case '\r': *out++ = 'r';  break;
+        case '\n': *out++ = 'n';  break;
+        default:
+            char const* const hexdig = "0123456789ABCDEF";
+            *out++ = 'x';
+            *out++ = hexdig[uc >> 4];
+            *out++ = hexdig[uc & 0xF];
+        }
+    }
+    return out;
+}
+}}
+
+namespace boost { namespace spirit { namespace traits {
+
+template <typename Enable>
+struct token_printer_debug<unsigned char, Enable>
+{
+    template <typename Out, typename Char>
+    static void print(Out& o, Char c)
+    {
+        sc2pp::parsers::escape_char(c, std::ostream_iterator<char>(o));
+    }
+};
+
+}}}
+
+namespace sc2pp { namespace parsers {
 
 typedef sc2pp::detail::hugenum_t hugenum_t;
 typedef sc2pp::detail::byte_array byte_array;
@@ -20,33 +61,21 @@ template<class OutIter, class InIter>
 OutIter write_escaped(InIter begin, const InIter end, OutIter out) {
     *out++ = '"';
     for (InIter i = begin; i != end; ++i) {
-        auto c = static_cast<unsigned char>(*i);
-        if (' ' <= c and c <= '~' and c != '\\' and c != '"') {
-            *out++ = static_cast<char>(c);
-        }
-        else {
-            *out++ = '\\';
-            switch(c) {
-            case '"':  *out++ = '"';  break;
-            case '\\': *out++ = '\\'; break;
-            case '\t': *out++ = 't';  break;
-            case '\r': *out++ = 'r';  break;
-            case '\n': *out++ = 'n';  break;
-            default:
-                char const* const hexdig = "0123456789ABCDEF";
-                *out++ = 'x';
-                *out++ = hexdig[c >> 4];
-                *out++ = hexdig[c & 0xF];
-            }
-        }
+        escape_char(*i, out);
     }
     *out++ = '"';
     return out;
 }
 
+#define DEBUG_RULE(X) \
+    X.name(#X); \
+    boost::spirit::qi::debug(X)
+
 #define HANDLE_ERROR(X)                                                         \
     X.name(#X);                                                                 \
-    boost::spirit::qi::on_error<boost::spirit::qi::fail>(X, errorhandler<boost::spirit::unused_type, Iterator>())
+    boost::spirit::qi::on_error<boost::spirit::qi::fail>(X, errorhandler<boost::spirit::unused_type, Iterator>()); \
+    DEBUG_RULE(X)
+
 
 template <typename Context, typename Iterator>
 struct errorhandler

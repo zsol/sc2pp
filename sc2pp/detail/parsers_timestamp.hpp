@@ -24,9 +24,9 @@ struct timestamp_grammar_t
 
 
         timestamp =
-            &byte_[_b = _1 & 0x3] >> byte_[_a = static_cast_<int>(_1) >> 2]
-                                  >> repeat(_b)[eps[_a <<= 8] >> byte_[_a += _1]]
-                                  >> eps[_val = _a];
+                bits(2)[_b = _1] >> bits(6)[_a = _1]
+                >> repeat(_b)[eps[_a <<= 8] >> byte_[_a += _1]]
+                >> eps[_val = _a];
 
         HANDLE_ERROR(timestamp);
     }
