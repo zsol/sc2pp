@@ -256,8 +256,8 @@ struct use_terminal<qi::domain,
         terminal_ex<sc2pp::tag::bits, fusion::vector2<A0, A1> > >
         : mpl::true_ {};
 
-//template <>
-//struct use_lazy_terminal<qi::domain, sc2pp::tag::bits, 0> : mpl::true_ {};
+template <>
+struct use_lazy_terminal<qi::domain, sc2pp::tag::bits, 0> : mpl::true_ {};
 
 template <>
 struct use_lazy_terminal<qi::domain, sc2pp::tag::bits, 1> : mpl::true_ {};
