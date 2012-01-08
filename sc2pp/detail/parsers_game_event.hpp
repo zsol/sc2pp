@@ -24,6 +24,7 @@ struct game_event_grammar_t
         using boost::spirit::_1;
         using boost::spirit::_a;
         using boost::spirit::_b;
+        using boost::spirit::_c;
         using boost::spirit::_r1;
         using boost::spirit::_r2;
         using boost::spirit::_pass;
@@ -31,17 +32,18 @@ struct game_event_grammar_t
         using boost::phoenix::static_cast_;
         using boost::phoenix::if_;
         using boost::phoenix::bind;
+        using boost::phoenix::construct;
 
 
-        game_event %=
-                omit[timestamp[_a = _1]] > bits(5)[_b = _1] >
+        game_event =
+                timestamp[_a = _1] > bits(5)[_b = _1] >
                 (
 
                     (bits(3, 0x0) > initial_event(_a, _b)) |
                     (bits(3, 0x1) > action_event(_a, _b)) |
                     (bits(3, 0x2) > unknown_event(_a, _b)) |
                     (bits(3, 0x3) > camera_event(_a, _b))
-                );
+                    )[_val = _1] > bits;
 
         unknown_event =
             byte_[_a = _1 & 0x7]
@@ -81,13 +83,14 @@ struct game_event_grammar_t
             big_dword[_val = (static_cast_<num_t>(_1) >> 8) * (static_cast_<num_t>(_1) & 0xf0) + (static_cast_<num_t>(_1) & 0x0f)];
 
         selection_event =
-                byte_ >> selection_modifier[_a = _1] > selected_types[_b = _1] >
-                selected_ids[_val = make_selection_event(_r1, _r2, _b, _1, _a)];
+                bits(4, 0xc) > bits(4)[_c = _1] > byte_ >> selection_modifier[_a = _1] > selected_types[_b = _1] >
+                selected_ids[_val = make_selection_event(_r1, _r2, _b, _1, _a, _c)];
 
         selection_modifier =
                 (bits(2, 0x1) > selection_bitmask[_val = _1]) |
                 (bits(2, 0x2) > byte_[_a = _1] > repeat(_a)[byteint][_val = bind(selection_event_t::deselect_t::make, _1)]) |
-                (bits(2, 0x3) > byte_[_a = _1] > repeat(_a)[byteint][_val = bind(selection_event_t::replace_t::make, _1)]);
+                (bits(2, 0x3) > byte_[_a = _1] > repeat(_a)[byteint][_val = bind(selection_event_t::replace_t::make, _1)]) |
+                (bits(2, 0x0) > eps[_val = construct<selection_event_t::selection_modifier_ptr>()]);
 
         selected_types %=
                 omit[byte_[_a = _1]] > repeat(_a)[type > byteint];
@@ -174,7 +177,7 @@ struct game_event_grammar_t
             boost::spirit::qi::locals<int>,
             std::vector<int>()> selected_ids;
     boost::spirit::qi::rule<Iterator,
-            boost::spirit::qi::locals<selection_event_t::selection_modifier_ptr, std::vector<std::pair<int, int> > >,
+            boost::spirit::qi::locals<selection_event_t::selection_modifier_ptr, std::vector<std::pair<int, int> >, int>,
             game_event_ptr(num_t, int)> selection_event;
     boost::spirit::qi::rule<Iterator,
             boost::spirit::qi::locals<int, selection_event_t::mask_t::bitmask_t>,
@@ -190,31 +193,31 @@ struct game_event_grammar_t
     struct make_selection_event_impl
     {
         /*
-         * +---------+---------+----------------+-----+------+
-         * | A1      | A2      | A3             | A4  | A5   |
-         * +---------+---------+----------------+-----+------+
-         * |timestamp|playerid |[(type, count)] |[id] |method|
-         * +---------+---------+----------------+-----+------+
+         * +---------+---------+----------------+-----+------+-----+
+         * | A1      | A2      | A3             | A4  | A5   | A6  |
+         * +---------+---------+----------------+-----+------+-----+
+         * |timestamp|playerid |[(type, count)] |[id] |method| slot|
+         * +---------+---------+----------------+-----+------+-----+
          */
-        template <typename A1, typename A2, typename A3, typename A4, typename A5>
+        template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
         struct result
         {
             typedef game_event_ptr type;
         };
-        template <typename A1, typename A2, typename A3, typename A4, typename A5>
-        typename result<A1, A2, A3, A4, A5>::type operator()(A1 a1, A2 a2, A3 const & a3, A4 const & a4, A5 a5) const
+        template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
+        typename result<A1, A2, A3, A4, A5, A6>::type operator()(A1 a1, A2 a2, A3 const & a3, A4 const & a4, A5 a5, A6 a6) const
         {
             selection_event_t::objects_t objs;
             objs.reserve(a4.size());
             int typecount = 0; auto it = a3.cbegin();
             for (const auto & obj : a4)
             {
-                if (typecount >= it->second) { ++it; typecount = 0; }
                 if (it == a3.cend()) handle_error(a1);
+                if (typecount >= it->second) { ++it; typecount = 0; }
 
                 objs.push_back(std::make_pair(obj, it->first));
             }
-            return selection_event_t::make(a1, a2, a2 >> 4, objs, a5);
+            return selection_event_t::make(a1, a2, a6, objs, a5);
         }
 
         template <typename A1>

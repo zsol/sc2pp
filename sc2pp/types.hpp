@@ -175,7 +175,7 @@ namespace sc2pp {
 
         int slot;
         objects_t objects;
-        selection_modifier_ptr modifier;
+        selection_modifier_ptr modifier; // can be nullptr
     };
     typedef std::shared_ptr<selection_event_t> selection_event_ptr;
 
