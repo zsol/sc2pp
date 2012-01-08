@@ -186,39 +186,6 @@ namespace sc2pp {
         read_events(archive);
     }
 
-    
-
-    std::ostream& operator<<(std::ostream& stream, replay_t const & rep)
-    {
-        stream << "Replay version " << rep.version << ", build " 
-               << rep.build << ". Number of frames: " << rep.frames
-               << ", Speed: " << rep.speed << ", Played at: " << rep.played_time
-               << "\nMap: " << rep.map
-               << "\nPlayers: ";
-        for (player_t const & player : rep.players)
-        {
-            stream << player << "; ";
-        }
-        stream << "\n";
-        stream << "Messages: \n";
-        for ( message_event_ptr const & msg : rep.messages )
-        {
-            stream << msg << "\n";
-        }
-        return stream;
-    }
-
-    std::ostream& operator<<(std::ostream& stream, player_t const & p)
-    {
-        stream << "Player name: " << p.name << ", Race: " << p.race
-               << ", Color: (" << p.color.a << ", " << p.color.r << ", "
-               << p.color.g << ", " << p.color.b << ") "
-               << "BNet region: " << p.bnet_region << ", ID: " 
-               << p.bnet_id << ", Handicap: " << p.handicap
-               << ", Result: " << p.result;
-        return stream;
-    }
-
     std::string 
     message_event_t::asString() const
     {
@@ -265,15 +232,15 @@ namespace sc2pp {
         return ss.str();
     }
 
-    std::ostream& operator<<(std::ostream& stream, message_event_ptr const & msg)
-    {
-        stream << msg->asString();
-        return stream;
-    }
-
     void
     selection_event_t::mask_t::operator()()
     {
+    }
+
+    std::string
+    selection_event_t::mask_t::asString() const
+    {
+        return "mask";
     }
 
     void
@@ -281,11 +248,98 @@ namespace sc2pp {
     {
     }
 
+    std::string
+    selection_event_t::deselect_t::asString() const
+    {
+        return "deselect";
+    }
+
     void
     selection_event_t::replace_t::operator()()
     {
     }
 
+    std::string
+    selection_event_t::replace_t::asString() const
+    {
+        return "replace";
+    }
+
+    std::string
+    game_event_t::asString() const
+    {
+        std::stringstream ss;
+        ss << timestamp << " - P" << player_id;
+        return ss.str();
+    }
+
+
+
+}
+
+namespace std
+{
+
+using namespace sc2pp;
+
+std::ostream& operator<<(std::ostream& stream, game_event_ptr const & event)
+{
+    stream << (event ? event->asString() : "nullptr");
+    return stream;
+}
+
+std::ostream& operator<<(std::ostream& stream, message_event_ptr const & msg)
+{
+    stream << (msg ? msg->asString() : "nullptr");
+    return stream;
+}
+
+std::ostream& operator<<(std::ostream& stream, replay_t const & rep)
+{
+    stream << "Replay version " << rep.version << ", build "
+           << rep.build << ". Number of frames: " << rep.frames
+           << ", Speed: " << rep.speed << ", Played at: " << rep.played_time
+           << "\nMap: " << rep.map
+           << "\nPlayers: ";
+    for (player_t const & player : rep.players)
+    {
+        stream << player << "; ";
+    }
+    stream << "\n";
+    stream << "Messages: \n";
+    for ( message_event_ptr const & msg : rep.messages )
+    {
+        stream << msg << "\n";
+    }
+    return stream;
+}
+
+std::ostream& operator<<(std::ostream& stream, player_t const & p)
+{
+    stream << "Player name: " << p.name << ", Race: " << p.race
+           << ", Color: (" << p.color.a << ", " << p.color.r << ", "
+           << p.color.g << ", " << p.color.b << ") "
+           << "BNet region: " << p.bnet_region << ", ID: "
+           << p.bnet_id << ", Handicap: " << p.handicap
+           << ", Result: " << p.result;
+    return stream;
+}
+
+ostream& operator<<(ostream& stream, vector<pair<int, int> > const & vec)
+{
+    stream << "[";
+    for (const auto & p : vec)
+    {
+        stream << "(" << p.first << ", " << p.second << "), ";
+    }
+    stream << "]";
+    return stream;
+}
+
+ostream& operator<<(ostream& stream, selection_event_t::selection_modifier_ptr const & modifier)
+{
+    return stream << (modifier ? modifier->asString() : "nullptr");
+}
 }
 
 // Local Variables:

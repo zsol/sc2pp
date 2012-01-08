@@ -82,7 +82,8 @@ public:
   {
     assert(s <= 8);
     value_type ret = 0;
-    if (s + _shift > 8)
+    if (_shift == 0) { _buf = *_iter++; }
+    else if (s + _shift > 8)
     {
       // save the part contained in the first byte
       ret = _buf & HI_MASK[8 - _shift];
@@ -95,11 +96,13 @@ public:
       // s < 8 holds from now on
     }
     const unsigned char mask = LO_MASK[s + _shift] ^ LO_MASK[_shift];
-    ret |= _buf & mask >> (8 - s);
+    ret |= (_buf & mask) >> _shift;
     _buf &= 0xff ^ mask;
     _buf |= *_iter & mask;
-    _shift -= s;
+    _shift += s;
     _shift %= 8;
+
+    if (_shift == 0) { ++_offset; }
 
     return ret;
   }
@@ -110,7 +113,7 @@ public:
 private:
   size_t _offset;
   size_t _shift;
-  iterator_type _iter;
+  iterator_type _iter; // points to the byte which contains the 8th next bit
   value_type _buf; // contains the next 8 bits if _shift != 0
 
   // static constexpr unsigned char LO_MASK[]; 
@@ -133,6 +136,32 @@ private:
 
 namespace sc2pp {
 BOOST_SPIRIT_TERMINAL_EX(bits);
+
+struct realign_bits_parser
+        : public boost::spirit::qi::primitive_parser<realign_bits_parser>
+{
+    template <typename Context, typename Iterator>
+    struct attribute
+    {
+        typedef boost::spirit::unused_type type;
+    };
+
+    template <typename Iterator, typename Context, typename Skipper,
+              typename Attribute>
+    bool parse(Iterator& first, Iterator const &, Context &,
+               Skipper const &, Attribute &) const
+    {
+        // no skip_over
+        if (auto shift = first.shift()) first.shift(8 - shift);
+        return true;
+    }
+
+    template <typename Context>
+    boost::spirit::info what(Context &) const
+    {
+        return boost::spirit::info("realign bits");
+    }
+};
 
 template <typename Size>
 struct bits_parser : public boost::spirit::qi::primitive_parser<bits_parser<Size> >
@@ -160,7 +189,9 @@ struct bits_parser : public boost::spirit::qi::primitive_parser<bits_parser<Size
     template <typename Context>
     boost::spirit::info what(Context &) const
     {
-        return boost::spirit::info("bits");
+        std::stringstream ss;
+        ss << n << " bits";
+        return boost::spirit::info(ss.str());
     }
 
 private:
@@ -198,7 +229,9 @@ struct bits_lit_parser : boost::spirit::qi::primitive_parser<bits_lit_parser<Siz
     template <typename Context>
     boost::spirit::info what(Context &) const
     {
-        return boost::spirit::info("bits");
+        std::stringstream ss;
+        ss << n << " bits(" << std::hex << e << ")";
+        return boost::spirit::info(ss.str());
     }
 
 private:
@@ -209,6 +242,10 @@ private:
 } // namespace sc2pp
 
 namespace boost { namespace spirit {
+template <>
+struct use_terminal<qi::domain, sc2pp::tag::bits>
+        : mpl::true_ {};
+
 template <typename A0>
 struct use_terminal<qi::domain,
         terminal_ex<sc2pp::tag::bits, fusion::vector1<A0> > >
@@ -220,12 +257,26 @@ struct use_terminal<qi::domain,
         : mpl::true_ {};
 
 template <>
+struct use_lazy_terminal<qi::domain, sc2pp::tag::bits, 0> : mpl::true_ {};
+
+template <>
 struct use_lazy_terminal<qi::domain, sc2pp::tag::bits, 1> : mpl::true_ {};
 
 template <>
 struct use_lazy_terminal<qi::domain, sc2pp::tag::bits, 2> : mpl::true_ {};
 
 namespace qi {
+template <typename Modifiers>
+struct make_primitive<sc2pp::tag::bits, Modifiers>
+{
+    typedef sc2pp::realign_bits_parser result_type;
+    template <typename Terminal>
+    result_type operator()(Terminal const &, unused_type) const
+    {
+        return result_type();
+    }
+};
+
 template <typename Modifiers, typename A0>
 struct make_primitive<terminal_ex<sc2pp::tag::bits, fusion::vector1<A0> >,
         Modifiers>

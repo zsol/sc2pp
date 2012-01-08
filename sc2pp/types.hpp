@@ -44,6 +44,8 @@ namespace sc2pp {
         num_t timestamp;
         int player_id;
 
+        virtual std::string asString() const;
+
         virtual ~game_event_t() {}
     };
     typedef std::shared_ptr<game_event_t> game_event_ptr;
@@ -87,8 +89,14 @@ namespace sc2pp {
     };
     typedef std::shared_ptr<game_started_event_t> game_started_event_ptr;
 
+    /**
+      \todo Flesh out camera movement details
+      */
     struct camera_movement_event_t : public game_event_t
     {
+        camera_movement_event_t() {}
+        camera_movement_event_t(num_t const & ts, int pid) : game_event_t(ts, pid) {}
+        static game_event_ptr make(num_t const& ts, int pid) { return std::make_shared<camera_movement_event_t>(ts, pid); }
     };
     typedef std::shared_ptr<camera_movement_event_t> camera_movement_event_ptr;
 
@@ -115,7 +123,11 @@ namespace sc2pp {
     {
         typedef std::vector<std::pair<int /*type*/, int/*id*/>> objects_t;
 
-        typedef std::function<void ()> selection_modifier_t;
+        struct selection_modifier_t : std::function<void ()>
+        {
+            virtual std::string asString() const = 0;
+            virtual ~selection_modifier_t() {}
+        };
         typedef std::shared_ptr<selection_modifier_t> selection_modifier_ptr;
 
         struct mask_t : public selection_modifier_t
@@ -125,7 +137,8 @@ namespace sc2pp {
             void operator()();
 
             static selection_modifier_ptr make(bitmask_t mask) { return std::make_shared<mask_t>(mask); }
-
+            std::string asString() const;
+            virtual ~mask_t() {}
             bitmask_t mask;
         };
 
@@ -137,7 +150,8 @@ namespace sc2pp {
             void operator()();
             
             static selection_modifier_ptr make(indices_t const & ind) { return std::make_shared<deselect_t>(ind); }
-            
+            std::string asString() const;
+            virtual ~deselect_t() {}
             indices_t indices;
         };
 
@@ -149,7 +163,8 @@ namespace sc2pp {
             void operator()();
 
             static selection_modifier_ptr make(indices_t const & ind) { return std::make_shared<replace_t>(ind); }
-            
+            std::string asString() const;
+            virtual ~replace_t() {}
             indices_t indices;
         };
 
@@ -160,7 +175,7 @@ namespace sc2pp {
 
         int slot;
         objects_t objects;
-        selection_modifier_ptr modifier;
+        selection_modifier_ptr modifier; // can be nullptr
     };
     typedef std::shared_ptr<selection_event_t> selection_event_ptr;
 
@@ -239,10 +254,16 @@ namespace sc2pp {
     };
     typedef std::shared_ptr<replay_t> replay_ptr;
 
-    std::ostream& operator<<(std::ostream& stream, replay_t const & rep);
-    std::ostream& operator<<(std::ostream& stream, player_t const & rep);
-    std::ostream& operator<<(std::ostream& stream, message_event_ptr const & msg);
+}
 
+namespace std
+{
+ostream& operator<<(ostream& stream, sc2pp::replay_t const & rep);
+ostream& operator<<(ostream& stream, sc2pp::player_t const & rep);
+ostream& operator<<(ostream& stream, sc2pp::message_event_ptr const & msg);
+ostream& operator<<(ostream& stream, sc2pp::game_event_ptr const & event);
+ostream& operator<<(ostream& stream, sc2pp::selection_event_t::selection_modifier_ptr const & modifier);
+ostream& operator<<(ostream& stream, vector<pair<int, int> > const & vec);
 }
 
 #endif
