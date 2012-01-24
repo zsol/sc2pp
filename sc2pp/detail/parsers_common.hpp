@@ -172,6 +172,89 @@ struct vector_to_array_impl
     }
 };
 
+template <typename Iterator>
+struct big_tbyte_grammar_t
+        : boost::spirit::qi::grammar<Iterator, boost::spirit::locals<int>, int()>
+{
+    big_tbyte_grammar_t() : big_tbyte_grammar_t::base_type(big_tbyte, "Big Endian 24bit binary")
+    {
+        using boost::spirit::qi::big_word;
+        using boost::spirit::qi::_a;
+        using boost::spirit::qi::_1;
+        using boost::spirit::qi::_val;
+        using boost::spirit::qi::byte_;
+        using boost::phoenix::static_cast_;
+
+        big_tbyte = big_word[_a = static_cast_<int>(_1) << 8] > byte_[_val = _a | _1];
+    }
+
+    boost::spirit::qi::rule<Iterator, boost::spirit::locals<int>, int()> big_tbyte;
+};
+
+template <typename Iterator>
+struct byteint_grammar_t
+        : boost::spirit::qi::grammar<Iterator, int()>
+{
+    byteint_grammar_t() : byteint_grammar_t::base_type(byteint, "Single-byte int")
+    {
+        using boost::spirit::_val;
+        using boost::spirit::byte_;
+        using boost::spirit::_1;
+        using boost::phoenix::static_cast_;
+
+        byteint = byte_[_val = static_cast_<int>(_1)];
+    }
+
+    boost::spirit::qi::rule<Iterator, int()> byteint;
+};
+
+template <typename Iterator>
+struct coordinate_grammar_t
+        : boost::spirit::qi::grammar<Iterator, boost::spirit::qi::locals<int, int>, float()>
+{
+    coordinate_grammar_t() : coordinate_grammar_t::base_type(coordinate, "Coordinate")
+    {
+        using boost::spirit::byte_;
+        using boost::spirit::eps;
+        using boost::spirit::_a;
+        using boost::spirit::_b;
+        using boost::spirit::_1;
+        using boost::spirit::_val;
+
+        coordinate =
+                byteint[_a = _1] > byteint[_b = _1 << 4] > bits(4)[_b = _b | _1] >
+                eps[_val = make_coordinate(_a, _b)];
+    }
+
+    struct make_coordinate_impl
+    {
+        template <typename A1, typename A2>
+        struct result
+        {
+            typedef float type;
+        };
+
+        template <typename A1, typename A2>
+        typename result<A1, A2>::type operator()(A1 a1, A2 a2) const
+        {
+            typedef typename result<A1, A2>::type ret_t;
+            ret_t ret = a1;
+
+            for (int i = 11; i >= 0; --i)
+                ret += static_cast<ret_t>((a2 >> i) & 1) / static_cast<ret_t>(1 << (12 - i));
+
+            return ret;
+        }
+    };
+
+    boost::phoenix::function<make_coordinate_impl> make_coordinate;
+    byteint_grammar_t<Iterator> byteint;
+    boost::spirit::qi::rule<Iterator,
+            boost::spirit::qi::locals<int, int>,
+            float()> coordinate;
+};
+
+
 }}
 
 #endif // PARSERS_COMMON_HPP

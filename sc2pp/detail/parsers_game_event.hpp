@@ -3,6 +3,7 @@
 
 #include <sc2pp/detail/parsers_common.hpp>
 #include <sc2pp/detail/parsers_timestamp.hpp>
+#include <sc2pp/detail/parsers_ability_event.hpp>
 
 namespace sc2pp { namespace parsers {
 template <typename Iterator>
@@ -67,7 +68,8 @@ struct game_event_grammar_t
                 (
                     player_left_event(_r1, _r2) |
                     resource_transfer_event(_r1, _r2) |
-                    selection_event(_r1, _r2)
+                    selection_event(_r1, _r2) |
+                    ability_event(_r1, _r2)
                 );
 
         player_left_event =
@@ -114,8 +116,6 @@ struct game_event_grammar_t
                 eps[boost::phoenix::bind(bitset_resize, _b, _a, false)] >
                 eps[_val = boost::phoenix::bind(selection_event_t::mask_t::make, _b)];
 
-        byteint = byte_[_val = static_cast_<int>(_1)];
-
         camera_event =
                 (
                     (byte_(0x87) > repeat(0, 2)[big_word[_pass = (_1 & 0xf0)]] > big_word) |
@@ -128,7 +128,6 @@ struct game_event_grammar_t
                          ) )
 
                 )[_val = bind(camera_movement_event_t::make, _r1, _r2)];
-
 
         HANDLE_ERROR(game_event);
         HANDLE_ERROR(unknown_event);
@@ -145,6 +144,8 @@ struct game_event_grammar_t
     }
 
     timestamp_grammar_t<Iterator> timestamp;
+    ability_event_grammar_t<Iterator> ability_event;
+    byteint_grammar_t<Iterator> byteint;
 
     boost::spirit::qi::rule<Iterator,
                             boost::spirit::qi::locals<num_t, int>,
@@ -182,7 +183,6 @@ struct game_event_grammar_t
     boost::spirit::qi::rule<Iterator,
             boost::spirit::qi::locals<int, selection_event_t::mask_t::bitmask_t>,
             selection_event_t::selection_modifier_ptr()> selection_bitmask;
-    boost::spirit::qi::rule<Iterator, int()> byteint;
     boost::spirit::qi::rule<Iterator,
             boost::spirit::qi::locals<int>,
             int()> type;
@@ -231,6 +231,7 @@ struct game_event_grammar_t
     };
 
     boost::phoenix::function<make_selection_event_impl> make_selection_event;
+
 };
 }}
 
