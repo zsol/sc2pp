@@ -14,20 +14,19 @@ struct message_grammar_t
 {
     message_grammar_t() : message_grammar_t::base_type(message_event, "Message")
     {
-        using boost::spirit::byte_;
-        using boost::spirit::little_dword;
-        using boost::spirit::repeat;
-        using boost::spirit::inf;
-        using boost::spirit::eps;
-        using boost::spirit::_val;
-        using boost::spirit::omit;
-        using boost::spirit::_1;
-        using boost::spirit::_a;
-        using boost::spirit::_b;
-        using boost::spirit::_r1;
-        using boost::spirit::_r2;
-        using boost::spirit::_pass;
-        using boost::spirit::as_string;
+        USE_SPIRIT_PARSER_(byte_);
+        USE_SPIRIT_PARSER(little_dword);
+        USE_SPIRIT_PARSER(repeat);
+        USE_SPIRIT_PARSER(eps);
+        USE_SPIRIT_PARSER(_val);
+        USE_SPIRIT_PARSER(omit);
+        USE_SPIRIT_PARSER(_1);
+        USE_SPIRIT_PARSER(_a);
+        USE_SPIRIT_PARSER(_b);
+        USE_SPIRIT_PARSER(_r1);
+        USE_SPIRIT_PARSER(_r2);
+        USE_SPIRIT_PARSER(_pass);
+        USE_SPIRIT_PARSER(as_string);
         using boost::phoenix::static_cast_;
         using boost::phoenix::if_;
         using boost::phoenix::bind;
@@ -35,15 +34,15 @@ struct message_grammar_t
 
         ping_event =
             byte_(0x83) > little_dword[_a = _1] > little_dword[_b = _1]
-            >> eps[_val = bind(ping_event_t::make, _r1, _r2, _a, _b)];
+            >> eps[_val = p::bind(ping_event_t::make, _r1, _r2, _a, _b)];
 
         message =
                 &byte_[if_((_1 & 0x80) != 0)[_pass = false]]
                 > byte_[_b = static_cast_<message_t::target_t>(_1 & 0x3), _a = (_1 & 0x18) << 3] >> byte_[_a += _1]
-                >> as_string[repeat(_a)[byte_]][_val = bind(message_t::make, _r1, _r2, _b, _1)];
+                >> as_string[repeat(_a)[byte_]][_val = p::bind(message_t::make, _r1, _r2, _b, _1)];
 
         unknown_message =
-            byte_(0x80) > repeat(4)[byte_][_val = boost::phoenix::bind(unknown_message_t::make, _r1, _r2, vector_to_array(_1))];
+            byte_(0x80) > repeat(4)[byte_][_val = p::bind(unknown_message_t::make, _r1, _r2, vector_to_array(_1))];
 
         message_event %= omit[timestamp[_a = _1] >> byte_[_b = _1 & 0xF]]
             >> (ping_event(_a, _b) | message(_a, _b) | unknown_message(_a, _b));

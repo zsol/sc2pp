@@ -1,6 +1,17 @@
 #ifndef SC2PP_DETAIL_PARSERS_COMMON_HPP
 #define SC2PP_DETAIL_PARSERS_COMMON_HPP
 
+#include <boost/spirit/include/version.hpp>
+
+#if SPIRIT_VERSION < 0x2050
+#define USE_SPIRIT_PARSER(PARSER) using boost::spirit::qi::PARSER
+#define USE_SPIRIT_PARSER_(PARSER) using boost::spirit::qi::PARSER
+#else
+#define BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
+#define USE_SPIRIT_PARSER(PARSER) boost::spirit::qi::PARSER##_type PARSER
+#define USE_SPIRIT_PARSER_(PARSER) boost::spirit::qi::PARSER##type PARSER
+#endif
+
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <array>
@@ -51,6 +62,8 @@ struct token_printer_debug<unsigned char, Enable>
 }}}
 
 namespace sc2pp { namespace parsers {
+
+namespace p = boost::phoenix;
 
 typedef sc2pp::detail::hugenum_t hugenum_t;
 typedef sc2pp::detail::byte_array byte_array;
@@ -178,11 +191,11 @@ struct big_tbyte_grammar_t
 {
     big_tbyte_grammar_t() : big_tbyte_grammar_t::base_type(big_tbyte, "Big Endian 24bit binary")
     {
-        using boost::spirit::qi::big_word;
-        using boost::spirit::qi::_a;
-        using boost::spirit::qi::_1;
-        using boost::spirit::qi::_val;
-        using boost::spirit::qi::byte_;
+        USE_SPIRIT_PARSER(big_word);
+        USE_SPIRIT_PARSER(_a);
+        USE_SPIRIT_PARSER(_1);
+        USE_SPIRIT_PARSER(_val);
+        USE_SPIRIT_PARSER_(byte_);
         using boost::phoenix::static_cast_;
 
         big_tbyte = big_word[_a = static_cast_<int>(_1) << 8] > byte_[_val = _a | _1];
@@ -197,9 +210,9 @@ struct byteint_grammar_t
 {
     byteint_grammar_t() : byteint_grammar_t::base_type(byteint, "Single-byte int")
     {
-        using boost::spirit::_val;
-        using boost::spirit::byte_;
-        using boost::spirit::_1;
+        USE_SPIRIT_PARSER(_val);
+        USE_SPIRIT_PARSER_(byte_);
+        USE_SPIRIT_PARSER(_1);
         using boost::phoenix::static_cast_;
 
         byteint = byte_[_val = static_cast_<int>(_1)];
@@ -214,12 +227,13 @@ struct coordinate_grammar_t
 {
     coordinate_grammar_t() : coordinate_grammar_t::base_type(coordinate, "Coordinate")
     {
-        using boost::spirit::byte_;
-        using boost::spirit::eps;
-        using boost::spirit::_a;
-        using boost::spirit::_b;
-        using boost::spirit::_1;
-        using boost::spirit::_val;
+        USE_SPIRIT_PARSER_(byte_);
+        USE_SPIRIT_PARSER(eps);
+        USE_SPIRIT_PARSER(_a);
+        USE_SPIRIT_PARSER(_b);
+        USE_SPIRIT_PARSER(_1);
+        USE_SPIRIT_PARSER(_val);
+        bits_type bits;
 
         coordinate =
                 byteint[_a = _1] > byteint[_b = _1 << 4] > bits(4)[_b = _b | _1] >

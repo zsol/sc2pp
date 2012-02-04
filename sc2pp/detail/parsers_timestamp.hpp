@@ -12,16 +12,15 @@ struct timestamp_grammar_t
 {
     timestamp_grammar_t() : timestamp_grammar_t::base_type(timestamp, "Timestamp")
     {
-        using boost::spirit::byte_;
-        using boost::spirit::repeat;
-        using boost::spirit::eps;
-        using boost::spirit::_val;
-        using boost::spirit::omit;
-        using boost::spirit::_1;
-        using boost::spirit::_a;
-        using boost::spirit::_b;
+        USE_SPIRIT_PARSER_(byte_);
+        USE_SPIRIT_PARSER(repeat);
+        USE_SPIRIT_PARSER(eps);
+        USE_SPIRIT_PARSER(_val);
+        USE_SPIRIT_PARSER(_1);
+        USE_SPIRIT_PARSER(_a);
+        USE_SPIRIT_PARSER(_b);
         using boost::phoenix::static_cast_;
-
+        bits_type bits;
 
         timestamp =
                 bits(2)[_b = _1] >> bits(6)[_a = _1]

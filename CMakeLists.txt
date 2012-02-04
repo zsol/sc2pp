@@ -31,7 +31,7 @@ SOURCE_GROUP( "Sources"           FILES ${Sources} )
 ############################## External libraries #############################
 #
 IF (CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS "-std=gnu++0x -Wall -Wextra -Werror")
+  set(CMAKE_CXX_FLAGS "-g0 -std=gnu++0x -Wall -Wextra -Werror")
 ENDIF()
 INCLUDE( FindBoost )
 SET( Boost_USE_MULTITHREADED ON )

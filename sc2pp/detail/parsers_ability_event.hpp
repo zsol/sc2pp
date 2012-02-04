@@ -11,30 +11,29 @@ struct ability_event_grammar_t
 {
     ability_event_grammar_t() : ability_event_grammar_t::base_type(ability_event, "Ability Event")
     {
-        using boost::spirit::byte_;
-        using boost::spirit::big_dword;
-        using boost::spirit::big_word;
-        using boost::spirit::little_word;
-        using boost::spirit::word;
-        using boost::spirit::repeat;
-        using boost::spirit::inf;
-        using boost::spirit::eps;
-        using boost::spirit::_val;
-        using boost::spirit::omit;
-        using boost::spirit::_1;
-        using boost::spirit::_2;
-        using boost::spirit::_a;
-        using boost::spirit::_b;
-        using boost::spirit::_c;
-        using boost::spirit::_r1;
-        using boost::spirit::_r2;
-        using boost::spirit::_r3;
-        using boost::spirit::_pass;
-        using boost::spirit::as_string;
+        USE_SPIRIT_PARSER_(byte_);
+        USE_SPIRIT_PARSER(big_dword);
+        USE_SPIRIT_PARSER(big_word);
+        USE_SPIRIT_PARSER(little_word);
+        USE_SPIRIT_PARSER(word);
+        USE_SPIRIT_PARSER(repeat);
+        USE_SPIRIT_PARSER(eps);
+        USE_SPIRIT_PARSER(_val);
+        USE_SPIRIT_PARSER(omit);
+        USE_SPIRIT_PARSER(_1);
+        USE_SPIRIT_PARSER(_2);
+        USE_SPIRIT_PARSER(_a);
+        USE_SPIRIT_PARSER(_b);
+        USE_SPIRIT_PARSER(_c);
+        USE_SPIRIT_PARSER(_r1);
+        USE_SPIRIT_PARSER(_r2);
+        USE_SPIRIT_PARSER(_r3);
+        USE_SPIRIT_PARSER(_pass);
         using boost::phoenix::static_cast_;
         using boost::phoenix::if_;
         using boost::phoenix::bind;
         using boost::phoenix::construct;
+        bits_type bits;
 
         ability_event %=
                 omit[bits(4, 0xb) > bits(4)] >
