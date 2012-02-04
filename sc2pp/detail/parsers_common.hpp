@@ -1,6 +1,17 @@
 #ifndef SC2PP_DETAIL_PARSERS_COMMON_HPP
 #define SC2PP_DETAIL_PARSERS_COMMON_HPP
 
+#include <boost/spirit/include/version.hpp>
+
+#if SPIRIT_VERSION < 0x2050
+#define USE_SPIRIT_PARSER(PARSER) using boost::spirit::qi::PARSER
+#define USE_SPIRIT_PARSER_(PARSER) using boost::spirit::qi::PARSER
+#else
+#define BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
+#define USE_SPIRIT_PARSER(PARSER) boost::spirit::qi::PARSER##_type PARSER
+#define USE_SPIRIT_PARSER_(PARSER) boost::spirit::qi::PARSER##type PARSER
+#endif
+
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <array>
@@ -51,6 +62,8 @@ struct token_printer_debug<unsigned char, Enable>
 }}}
 
 namespace sc2pp { namespace parsers {
+
+namespace p = boost::phoenix;
 
 typedef sc2pp::detail::hugenum_t hugenum_t;
 typedef sc2pp::detail::byte_array byte_array;
@@ -171,6 +184,90 @@ struct vector_to_array_impl
         return ret;
     }
 };
+
+template <typename Iterator>
+struct big_tbyte_grammar_t
+        : boost::spirit::qi::grammar<Iterator, boost::spirit::locals<int>, int()>
+{
+    big_tbyte_grammar_t() : big_tbyte_grammar_t::base_type(big_tbyte, "Big Endian 24bit binary")
+    {
+        USE_SPIRIT_PARSER(big_word);
+        USE_SPIRIT_PARSER(_a);
+        USE_SPIRIT_PARSER(_1);
+        USE_SPIRIT_PARSER(_val);
+        USE_SPIRIT_PARSER_(byte_);
+        using boost::phoenix::static_cast_;
+
+        big_tbyte = big_word[_a = static_cast_<int>(_1) << 8] > byte_[_val = _a | _1];
+    }
+
+    boost::spirit::qi::rule<Iterator, boost::spirit::locals<int>, int()> big_tbyte;
+};
+
+template <typename Iterator>
+struct byteint_grammar_t
+        : boost::spirit::qi::grammar<Iterator, int()>
+{
+    byteint_grammar_t() : byteint_grammar_t::base_type(byteint, "Single-byte int")
+    {
+        USE_SPIRIT_PARSER(_val);
+        USE_SPIRIT_PARSER_(byte_);
+        USE_SPIRIT_PARSER(_1);
+        using boost::phoenix::static_cast_;
+
+        byteint = byte_[_val = static_cast_<int>(_1)];
+    }
+
+    boost::spirit::qi::rule<Iterator, int()> byteint;
+};
+
+template <typename Iterator>
+struct coordinate_grammar_t
+        : boost::spirit::qi::grammar<Iterator, boost::spirit::qi::locals<int, int>, float()>
+{
+    coordinate_grammar_t() : coordinate_grammar_t::base_type(coordinate, "Coordinate")
+    {
+        USE_SPIRIT_PARSER_(byte_);
+        USE_SPIRIT_PARSER(eps);
+        USE_SPIRIT_PARSER(_a);
+        USE_SPIRIT_PARSER(_b);
+        USE_SPIRIT_PARSER(_1);
+        USE_SPIRIT_PARSER(_val);
+        bits_type bits;
+
+        coordinate =
+                byteint[_a = _1] > byteint[_b = _1 << 4] > bits(4)[_b = _b | _1] >
+                eps[_val = make_coordinate(_a, _b)];
+    }
+
+    struct make_coordinate_impl
+    {
+        template <typename A1, typename A2>
+        struct result
+        {
+            typedef float type;
+        };
+
+        template <typename A1, typename A2>
+        typename result<A1, A2>::type operator()(A1 a1, A2 a2) const
+        {
+            typedef typename result<A1, A2>::type ret_t;
+            ret_t ret = a1;
+
+            for (int i = 11; i >= 0; --i)
+                ret += static_cast<ret_t>((a2 >> i) & 1) / static_cast<ret_t>(1 << (12 - i));
+
+            return ret;
+        }
+    };
+
+    boost::phoenix::function<make_coordinate_impl> make_coordinate;
+    byteint_grammar_t<Iterator> byteint;
+    boost::spirit::qi::rule<Iterator,
+            boost::spirit::qi::locals<int, int>,
+            float()> coordinate;
+};
+
 
 }}
 

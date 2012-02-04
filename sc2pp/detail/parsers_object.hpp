@@ -10,17 +10,17 @@ struct object_grammar_t : public boost::spirit::qi::grammar<Iterator, object_typ
 {
     object_grammar_t() : object_grammar_t::base_type(object, "Blizzard Object")
     {
-        using boost::spirit::byte_;
-        using boost::spirit::big_dword;
-        using boost::spirit::repeat;
-        using boost::spirit::inf;
-        using boost::spirit::eps;
-        using boost::spirit::_val;
-        using boost::spirit::omit;
-        using boost::spirit::_1;
-        using boost::spirit::_a;
-        using boost::spirit::_b;
-        using boost::spirit::_pass;
+        USE_SPIRIT_PARSER_(byte_);
+        USE_SPIRIT_PARSER(big_dword);
+        USE_SPIRIT_PARSER(repeat);
+        USE_SPIRIT_PARSER(inf);
+        USE_SPIRIT_PARSER(eps);
+        USE_SPIRIT_PARSER(_val);
+        USE_SPIRIT_PARSER(omit);
+        USE_SPIRIT_PARSER(_1);
+        USE_SPIRIT_PARSER(_a);
+        USE_SPIRIT_PARSER(_b);
+        USE_SPIRIT_PARSER(_pass);
         using boost::phoenix::static_cast_;
         using boost::phoenix::if_;
 

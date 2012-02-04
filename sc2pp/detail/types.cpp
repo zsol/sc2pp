@@ -42,6 +42,7 @@ namespace sc2pp { namespace detail {
                 // TODO: else signal error!
             }
             assert(false); //should never happen
+            return 0;
         }
 
         bool byte_array::operator==(byte_array const & other) const 

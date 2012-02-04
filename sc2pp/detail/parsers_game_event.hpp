@@ -3,6 +3,7 @@
 
 #include <sc2pp/detail/parsers_common.hpp>
 #include <sc2pp/detail/parsers_timestamp.hpp>
+#include <sc2pp/detail/parsers_ability_event.hpp>
 
 namespace sc2pp { namespace parsers {
 template <typename Iterator>
@@ -13,27 +14,25 @@ struct game_event_grammar_t
 {
     game_event_grammar_t() : game_event_grammar_t::base_type(game_event, "Game Event")
     {
-        using boost::spirit::byte_;
-        using boost::spirit::big_dword;
-        using boost::spirit::big_word;
-        using boost::spirit::repeat;
-        using boost::spirit::inf;
-        using boost::spirit::eps;
-        using boost::spirit::_val;
-        using boost::spirit::omit;
-        using boost::spirit::_1;
-        using boost::spirit::_a;
-        using boost::spirit::_b;
-        using boost::spirit::_c;
-        using boost::spirit::_r1;
-        using boost::spirit::_r2;
-        using boost::spirit::_pass;
-        using boost::spirit::as_string;
+        USE_SPIRIT_PARSER_(byte_);
+        USE_SPIRIT_PARSER(big_dword);
+        USE_SPIRIT_PARSER(big_word);
+        USE_SPIRIT_PARSER(repeat);
+        USE_SPIRIT_PARSER(eps);
+        USE_SPIRIT_PARSER(_val);
+        USE_SPIRIT_PARSER(omit);
+        USE_SPIRIT_PARSER(_1);
+        USE_SPIRIT_PARSER(_a);
+        USE_SPIRIT_PARSER(_b);
+        USE_SPIRIT_PARSER(_c);
+        USE_SPIRIT_PARSER(_r1);
+        USE_SPIRIT_PARSER(_r2);
+        USE_SPIRIT_PARSER(_pass);
         using boost::phoenix::static_cast_;
         using boost::phoenix::if_;
         using boost::phoenix::bind;
         using boost::phoenix::construct;
-
+        bits_type bits;
 
         game_event =
                 timestamp[_a = _1] > bits(5)[_b = _1] >
@@ -47,7 +46,7 @@ struct game_event_grammar_t
 
         unknown_event =
             byte_[_a = _1 & 0x7]
-            >> byte_[_val = bind(unknown_event_t::make, _r1, _r2, _a, _1)];
+            >> byte_[_val = p::bind(unknown_event_t::make, _r1, _r2, _a, _1)];
 
         initial_event %=
                 (
@@ -57,27 +56,28 @@ struct game_event_grammar_t
 
         player_joined_event =
             (byte_(0xB) | byte_(0xC) | byte_(0x2C))
-            > eps[_val = bind(player_joined_event_t::make, _r1, _r2)];
+            > eps[_val = p::bind(player_joined_event_t::make, _r1, _r2)];
 
         game_started_event =
             byte_(0x5)
-            > eps[_val = bind(game_started_event_t::make, _r1, _r2)];
+            > eps[_val = p::bind(game_started_event_t::make, _r1, _r2)];
 
         action_event %=
                 (
                     player_left_event(_r1, _r2) |
                     resource_transfer_event(_r1, _r2) |
-                    selection_event(_r1, _r2)
+                    selection_event(_r1, _r2) |
+                    ability_event(_r1, _r2)
                 );
 
         player_left_event =
             byte_(0x9)
-            > eps[_val = bind(player_left_event_t::make, _r1, _r2)];
+            > eps[_val = p::bind(player_left_event_t::make, _r1, _r2)];
 
         resource_transfer_event =
                 bits(4, 0xf) > bits(4)[_a = _1] >
                 byte_(0x84) >
-                repeat(4)[resource][_val = bind(resource_transfer_event_t::make, _r1, _r2, _a, _1)];
+                repeat(4)[resource][_val = p::bind(resource_transfer_event_t::make, _r1, _r2, _a, _1)];
 
         resource =
             big_dword[_val = (static_cast_<num_t>(_1) >> 8) * (static_cast_<num_t>(_1) & 0xf0) + (static_cast_<num_t>(_1) & 0x0f)];
@@ -88,8 +88,8 @@ struct game_event_grammar_t
 
         selection_modifier =
                 (bits(2, 0x1) > selection_bitmask[_val = _1]) |
-                (bits(2, 0x2) > byte_[_a = _1] > repeat(_a)[byteint][_val = bind(selection_event_t::deselect_t::make, _1)]) |
-                (bits(2, 0x3) > byte_[_a = _1] > repeat(_a)[byteint][_val = bind(selection_event_t::replace_t::make, _1)]) |
+                (bits(2, 0x2) > byte_[_a = _1] > repeat(_a)[byteint][_val = p::bind(selection_event_t::deselect_t::make, _1)]) |
+                (bits(2, 0x3) > byte_[_a = _1] > repeat(_a)[byteint][_val = p::bind(selection_event_t::replace_t::make, _1)]) |
                 (bits(2, 0x0) > eps[_val = construct<selection_event_t::selection_modifier_ptr>()]);
 
         selected_types %=
@@ -109,12 +109,10 @@ struct game_event_grammar_t
 
         selection_bitmask =
                 byte_[_a = _1] >
-                repeat(_a / 8)[byte_[boost::phoenix::bind(bitset_append, _b, _1)]] >
-                bits(_a % 8)[boost::phoenix::bind(bitset_append, _b, _1)] >
-                eps[boost::phoenix::bind(bitset_resize, _b, _a, false)] >
-                eps[_val = boost::phoenix::bind(selection_event_t::mask_t::make, _b)];
-
-        byteint = byte_[_val = static_cast_<int>(_1)];
+                repeat(_a / 8)[byte_[ p::bind(bitset_append, _b, _1)]] >
+                bits(_a % 8)[ p::bind(bitset_append, _b, _1)] >
+                eps[ p::bind(bitset_resize, _b, _a, false)] >
+                eps[_val = p::bind(selection_event_t::mask_t::make, _b)];
 
         camera_event =
                 (
@@ -127,8 +125,7 @@ struct game_event_grammar_t
                          (bits(6) >> bits(1, 0x1) >> bits(1) > byte_ > byte_)
                          ) )
 
-                )[_val = bind(camera_movement_event_t::make, _r1, _r2)];
-
+                )[_val = p::bind(camera_movement_event_t::make, _r1, _r2)];
 
         HANDLE_ERROR(game_event);
         HANDLE_ERROR(unknown_event);
@@ -145,6 +142,8 @@ struct game_event_grammar_t
     }
 
     timestamp_grammar_t<Iterator> timestamp;
+    ability_event_grammar_t<Iterator> ability_event;
+    byteint_grammar_t<Iterator> byteint;
 
     boost::spirit::qi::rule<Iterator,
                             boost::spirit::qi::locals<num_t, int>,
@@ -182,7 +181,6 @@ struct game_event_grammar_t
     boost::spirit::qi::rule<Iterator,
             boost::spirit::qi::locals<int, selection_event_t::mask_t::bitmask_t>,
             selection_event_t::selection_modifier_ptr()> selection_bitmask;
-    boost::spirit::qi::rule<Iterator, int()> byteint;
     boost::spirit::qi::rule<Iterator,
             boost::spirit::qi::locals<int>,
             int()> type;
@@ -231,6 +229,7 @@ struct game_event_grammar_t
     };
 
     boost::phoenix::function<make_selection_event_impl> make_selection_event;
+
 };
 }}
 
