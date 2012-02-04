@@ -15,7 +15,7 @@ namespace sc2pp
     {
         vector<game_event_ptr> ret;
         bitshift_iterator<const unsigned char*> bitbegin(begin), bitend(end);
-        parse(bitbegin, bitend, *sc2pp::parsers::game_event_grammar_t<bitshift_iterator<const unsigned char*>>(), ret);
+        parse(bitbegin, bitend, *sc2pp::parsers::game_event_grammar_selector<bitshift_iterator<const unsigned char*>>::type(), ret);
         return ret;
     }
 

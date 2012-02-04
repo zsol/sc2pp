@@ -120,6 +120,8 @@ struct ability_event_grammar_t
             game_event_ptr(num_t, int)> move;
 };
 
+DECLARE_DEFAULT_GRAMMAR(ability_event_grammar);
+
 }}
 
 #endif // PARSERS_ABILITY_EVENT_HPP
