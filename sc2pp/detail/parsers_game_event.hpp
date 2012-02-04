@@ -141,9 +141,9 @@ struct game_event_grammar_t
 
     }
 
-    timestamp_grammar_t<Iterator> timestamp;
-    ability_event_grammar_t<Iterator> ability_event;
-    byteint_grammar_t<Iterator> byteint;
+    typename timestamp_grammar_selector<Iterator>::type timestamp;
+    typename ability_event_grammar_selector<Iterator>::type ability_event;
+    typename byteint_grammar_selector<Iterator>::type byteint;
 
     boost::spirit::qi::rule<Iterator,
                             boost::spirit::qi::locals<num_t, int>,
@@ -231,6 +231,9 @@ struct game_event_grammar_t
     boost::phoenix::function<make_selection_event_impl> make_selection_event;
 
 };
+
+DECLARE_DEFAULT_GRAMMAR(game_event_grammar);
+
 }}
 
 #endif // SC2PP_DETAIL_PARSERS_GAME_EVENT_HPP

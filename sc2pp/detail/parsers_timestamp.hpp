@@ -35,6 +35,9 @@ struct timestamp_grammar_t
                             num_t()> timestamp;
 
 };
+
+DECLARE_DEFAULT_GRAMMAR(timestamp_grammar);
+
 }}
 
 #endif // SC2PP_DETAIL_PARSERS_TIMESTAMP_HPP
