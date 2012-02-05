@@ -96,8 +96,8 @@ OutIter write_escaped(InIter begin, const InIter end, OutIter out) {
 
 #define HANDLE_ERROR(X)                                                         \
     X.name(#X);                                                                 \
-    boost::spirit::qi::on_error<boost::spirit::qi::fail>(X, errorhandler<boost::spirit::unused_type, Iterator>()); \
-    DEBUG_RULE(X)
+    boost::spirit::qi::on_error<boost::spirit::qi::fail>(X, errorhandler<boost::spirit::unused_type, Iterator>())
+//    DEBUG_RULE(X)
 
 
 template <typename Context, typename Iterator>

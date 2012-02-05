@@ -63,11 +63,11 @@ struct ability_event_grammar_t
                 eps[_val = construct<ability_event_ptr>()];
 
         no_idea =
-                bits(2) >> bits(1, 0x1) >> bits(5, 0x0) >> bits(6) >> bits(1, 0x1) >> bits(1) >
+                byte_ >> bits(6) >> bits(1, 0x1) >> bits(1) >
                 big_tbyte[_a = _1] >
                 (
                     (eps[_pass = _a & 0x20] > repeat(9)[byte_]) |
-                    (eps[_pass = _a & 0x40] > repeat(18)[byte_]) |
+                    (eps[_pass = _a & 0x40] > repeat(19)[byte_]) |
                     eps
                 ) > eps[_val = construct<ability_event_ptr>()];
 

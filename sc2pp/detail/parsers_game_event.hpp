@@ -67,7 +67,8 @@ struct game_event_grammar_t
                     player_left_event(_r1, _r2) |
                     resource_transfer_event(_r1, _r2) |
                     selection_event(_r1, _r2) |
-                    ability_event(_r1, _r2)
+                    ability_event(_r1, _r2) |
+                    hotkey_event(_r1, _r2)
                 );
 
         player_left_event =
@@ -119,13 +120,17 @@ struct game_event_grammar_t
                     (byte_(0x87) > repeat(0, 2)[big_word[_pass = (_1 & 0xf0)]] > big_word) |
                     (byte_(0x0a) > eps[_pass = false]) | // TODO
                     (bits(4, 0x8) > byteint[_a = _1] > bits(4) > repeat(_a*4+1)[byte_]) |
-                    (bits(4, 0x1) > bits(4) > repeat(3)[byte_] > (
+                    (bits(4, 0x1) > bits(4) > repeat(3)[byte_] > ( (
                          (bits(4) >> bits(1, 0x1) >> bits(3) > byte_) ||
                          (bits(5) >> bits(1, 0x1) >> bits(2) > byte_) ||
                          (bits(6) >> bits(1, 0x1) >> bits(1) > byte_ > byte_)
-                         ) )
+                         ) | byte_ ) )
 
                 )[_val = p::bind(camera_movement_event_t::make, _r1, _r2)];
+
+        hotkey_event =
+                bits(4, 0xD) > bits(4)[_a = _1] >> bits(2)[_b = _1]
+                >> selection_modifier[_val = construct<ability_event_ptr>()];
 
         HANDLE_ERROR(game_event);
         HANDLE_ERROR(unknown_event);
@@ -137,6 +142,7 @@ struct game_event_grammar_t
         HANDLE_ERROR(resource_transfer_event);
         HANDLE_ERROR(selection_event);
         HANDLE_ERROR(camera_event);
+        HANDLE_ERROR(hotkey_event);
         // boost::spirit::qi::on_error<boost::spirit::qi::fail>(*this, errorhandler<boost::spirit::unused_type, Iterator>);
 
     }
@@ -187,6 +193,10 @@ struct game_event_grammar_t
     boost::spirit::qi::rule<Iterator,
             boost::spirit::qi::locals<int>,
             game_event_ptr(num_t, int)> camera_event;
+    boost::spirit::qi::rule<Iterator,
+            boost::spirit::qi::locals<int, int>,
+            game_event_ptr(num_t, int)> hotkey_event;
+
 
     struct make_selection_event_impl
     {
