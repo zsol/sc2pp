@@ -58,7 +58,7 @@ struct ability_event_grammar_t
                 eps[_val = construct<ability_event_ptr>()];
 
         cancel =
-                (byte_(0x29) | byte_(0x19) | byte_(0x14)) >> bits(5) >> bits(1, 0x1) >> bits(2) >
+                (byte_(0x29) | byte_(0x19) | byte_(0x14) | byte_(0x0c)) >> bits(5) >> bits(1, 0x1) >> bits(2) >
                 big_tbyte[_a = _1] > big_dword[_b = _1] >
                 eps[_val = construct<ability_event_ptr>()];
 

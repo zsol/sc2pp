@@ -90,15 +90,16 @@ OutIter write_escaped(InIter begin, const InIter end, OutIter out) {
     return out;
 }
 
-#define DEBUG_RULE(X) \
-    X.name(#X); \
+#ifdef SC2PP_DEBUG
+#define HANDLE_ERROR(X)                                                         \
+    X.name(#X);                                                                 \
+    boost::spirit::qi::on_error<boost::spirit::qi::fail>(X, errorhandler<boost::spirit::unused_type, Iterator>()); \
     boost::spirit::qi::debug(X)
-
+#else
 #define HANDLE_ERROR(X)                                                         \
     X.name(#X);                                                                 \
     boost::spirit::qi::on_error<boost::spirit::qi::fail>(X, errorhandler<boost::spirit::unused_type, Iterator>())
-//    DEBUG_RULE(X)
-
+#endif
 
 template <typename Context, typename Iterator>
 struct errorhandler
