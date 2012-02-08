@@ -38,13 +38,12 @@ struct game_event_grammar_t
         game_event =
                 timestamp[_a = _1] > bits(5)[_b = _1] >
                 (
-
-                    (bits(3, 0x0) > initial_event(_a, _b)) |
                     (bits(3, 0x1) > action_event(_a, _b)) |
-                    (bits(3, 0x2) > unknown_event(_a, _b, 2)) |
                     (bits(3, 0x3) > camera_event(_a, _b)) |
-                    (bits(3, 0x4) > unknown_event(_a, _b, 4))
-                    )[_val = _1] > bits;
+                    (bits(3, 0x2) > unknown_event(_a, _b, 2)) |
+                    (bits(3, 0x4) > unknown_event(_a, _b, 4)) |
+                    (bits(3, 0x0) > initial_event(_a, _b))
+                )[_val = _1] > bits;
 
         unknown_event =
                 ( ( eps[_pass = _r3 == 2] > (
@@ -77,11 +76,11 @@ struct game_event_grammar_t
 
         action_event %=
                 (
-                    player_left_event(_r1, _r2) |
-                    resource_transfer_event(_r1, _r2) |
                     selection_event(_r1, _r2) |
+                    hotkey_event(_r1, _r2) |
                     ability_event(_r1, _r2) |
-                    hotkey_event(_r1, _r2)
+                    resource_transfer_event(_r1, _r2) |
+                    player_left_event(_r1, _r2)
                 );
 
         player_left_event =
