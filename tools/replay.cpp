@@ -16,6 +16,7 @@ int main(int argc, char** argv)
     desc.add_options()
         ("help", "display this help message")
         ("input", po::value<vector<string>>(), "input file(s)")
+        ("no-output,n", "do not display any output (useful for profiling)")
         ;
     posdesc.add("input", -1);
     po::store(po::command_line_parser(argc, argv)
@@ -35,8 +36,9 @@ int main(int argc, char** argv)
     for (const auto& input : inputs)
     {
         sc2pp::replay_t rep(input);
-        cout << "---- " << input << " ----\n"
-             << rep << endl;
+        if (vm.count("no-output") == 0)
+            cout << "---- " << input << " ----\n"
+                 << rep << endl;
     }
 
     return 0;

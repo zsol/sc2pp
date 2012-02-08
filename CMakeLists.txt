@@ -30,6 +30,8 @@ SOURCE_GROUP( "Sources"           FILES ${Sources} )
 
 ############################## External libraries #############################
 #
+SET_PROPERTY(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG SC2PP_DEBUG)
+
 IF (CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "-g0 -std=gnu++0x -Wall -Wextra -Werror")
 ENDIF()

@@ -58,26 +58,26 @@ struct ability_event_grammar_t
                 eps[_val = construct<ability_event_ptr>()];
 
         cancel =
-                (byte_(0x29) | byte_(0x19) | byte_(0x14)) >> bits(5) >> bits(1, 0x1) >> bits(2) >
+                (byte_(0x29) | byte_(0x19) | byte_(0x14) | byte_(0x0c)) >> bits(5) >> bits(1, 0x1) >> bits(2) >
                 big_tbyte[_a = _1] > big_dword[_b = _1] >
                 eps[_val = construct<ability_event_ptr>()];
 
         no_idea =
-                bits(2) >> bits(1, 0x1) >> bits(5, 0x0) >> bits(6) >> bits(1, 0x1) >> bits(1) >
+                byte_ >> bits(6) >> bits(1, 0x1) >> bits(1) >
                 big_tbyte[_a = _1] >
                 (
                     (eps[_pass = _a & 0x20] > repeat(9)[byte_]) |
-                    (eps[_pass = _a & 0x40] > repeat(18)[byte_]) |
+                    (eps[_pass = _a & 0x40] > repeat(19)[byte_]) |
                     eps
                 ) > eps[_val = construct<ability_event_ptr>()];
 
         targeted =
                 byte_ >> bits(7) >> bits(1, 0x1) >
-                little_word[_a = _1] > big_dword[_b = _1] > big_word[_c = _1] > repeat(10)[byte_] /*coords?*/ >
+                big_word[_a = _1] > big_dword[_b = _1] > big_word[_c = _1] > repeat(11)[byte_] /*coords? only 10 byte in build<19595*/ >
                 eps[_val = construct<ability_event_ptr>()];
 
         move =
-                byte_(0x8) >> bits(6) >> bits(1, 0x1) >> bits(1) >
+                byte_ >> bits(4) >> bits(4, 0x0) >
                 coordinate[_a = _1] > coordinate[_b = _1] > repeat(5)[byte_] >
                 eps[_val = construct<ability_event_ptr>()];
 
