@@ -122,9 +122,9 @@ struct game_event_grammar_t
         auto bitset_resize = static_cast<bitset_resize_ftype>(&bitmask_t::resize);
 
         selection_bitmask =
-                byte_[_a = _1] >
+                byteint[_a = _1] >
                 repeat(_a / 8)[byte_[ p::bind(bitset_append, _b, _1)]] >
-                bits(_a % 8)[ p::bind(bitset_append, _b, _1)] >
+                repeat(_a % 8)[bits(1)[p::bind(bitset_append, _b, _1)]] >
                 eps[ p::bind(bitset_resize, _b, _a, false)] >
                 eps[_val = p::bind(selection_event_t::mask_t::make, _b)];
 
@@ -157,7 +157,6 @@ struct game_event_grammar_t
         HANDLE_ERROR(resource_transfer_event);
         HANDLE_ERROR(selection_event);
         HANDLE_ERROR(camera_event);
-        HANDLE_ERROR(camera_payload);
         HANDLE_ERROR(hotkey_event);
         // boost::spirit::qi::on_error<boost::spirit::qi::fail>(*this, errorhandler<boost::spirit::unused_type, Iterator>);
 
