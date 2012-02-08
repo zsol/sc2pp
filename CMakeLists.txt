@@ -3,7 +3,7 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.6 )
 
 ############################## Checks #########################################
 IF ( NOT CMAKE_BUILD_TYPE )
-  SET( CMAKE_BUILD_TYPE Debug CACHE STRING "Available build types: Debug | Release" FORCE )
+  SET( CMAKE_BUILD_TYPE Release CACHE STRING "Available build types: Debug | Release" FORCE )
 ENDIF ( NOT CMAKE_BUILD_TYPE )
 
 ############################## Project name ###################################
