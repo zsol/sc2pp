@@ -1,6 +1,9 @@
 #ifndef SC2PP_UTILS_HPP
 #define SC2PP_UTILS_HPP
 
+#include <cstddef>
+#include <cassert>
+
 namespace sc2pp {
 
 constexpr unsigned char LO_MASK[] = { 0x00, 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff };
@@ -83,26 +86,31 @@ public:
     assert(s <= 8);
     value_type ret = 0;
     if (_shift == 0) { _buf = *_iter++; }
-    else if (s + _shift > 8)
+    if (s + _shift > 8)
     {
       // save the part contained in the first byte
-      ret = _buf & HI_MASK[8 - _shift];
+      ret = (_buf & HI_MASK[8 - _shift]) >> _shift;
       s -= 8 - _shift;
       // make sure _buf == second byte; then read a third one
       _buf &= LO_MASK[_shift];
       _buf |= *_iter & HI_MASK[_shift];
       ++_iter, ++_offset;
-      _shift = 0; // we are realigned now, there are 's' remaining bits to shift:
       // s < 8 holds from now on
+      const unsigned char mask = LO_MASK[s];
+      ret |= (_buf & mask) << (8 - _shift); // left shift!
+      _buf &= 0xff ^ mask;
+      _buf |= *_iter & mask;
+      _shift = s;
     }
-    const unsigned char mask = LO_MASK[s + _shift] ^ LO_MASK[_shift];
-    ret |= (_buf & mask) >> _shift;
-    _buf &= 0xff ^ mask;
-    _buf |= *_iter & mask;
-    _shift += s;
-    _shift %= 8;
-
-    if (_shift == 0) { ++_offset; }
+    else
+    {
+        const unsigned char mask = LO_MASK[s + _shift] ^ LO_MASK[_shift];
+        ret |= (_buf & mask) >> _shift;
+        _buf &= 0xff ^ mask;
+        _buf |= *_iter & mask;
+        _shift += s;
+        if (_shift == 8) { ++_offset; _shift = 0; }
+    }
 
     return ret;
   }
@@ -127,6 +135,13 @@ private:
   }
 
 };
+
+template <typename It>
+typename sc2pp::bitshift_iterator<It>
+make_bitshift_iterator(const It& it)
+{
+    return sc2pp::bitshift_iterator<It>(it);
+}
 
 }
 
