@@ -7,6 +7,6 @@ ADD_EXECUTABLE( bitshift_iterator bitshift_iterator.cpp )
 TARGET_LINK_LIBRARIES( bitshift_iterator SC2pp ${Boost_LIBRARIES} )
 
 IF (CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS "-std=gnu++0x")
+  set(CMAKE_CXX_FLAGS "-std=c++0x")
 ENDIF()
 
