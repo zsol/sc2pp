@@ -17,10 +17,12 @@ SET( SC2pp_PATCH_LEVEL   0 )
 OPTION( BUILD_DOC    "Build the doxygen documentation"         ON  )
 OPTION( BUILD_STATIC "Build as a static library"               OFF  )
 OPTION( BUILD_TESTS  "Build the tests"                         ON  )
+OPTION( BUILD_PYTHON "Build python wrapper library" OFF )
 
 MESSAGE( STATUS "Building documentation:   " ${BUILD_DOC}    )
 MESSAGE( STATUS "Building static:          " ${BUILD_STATIC} )
 MESSAGE( STATUS "Building tests:           " ${BUILD_TESTS}  )
+MESSAGE( STATUS "Building python wrapper:  " ${BUILD_PYTHON} )
 
 ############################## Sources ########################################
 FILE( GLOB_RECURSE Sources        sc2pp/*.cpp sc2pp/detail/*.cpp sc2pp/*.hpp sc2pp/*.h sc2pp/detail/*.hpp )
@@ -72,6 +74,10 @@ IF ( BUILD_TESTS )
 ENDIF( BUILD_TESTS )
 
 ADD_SUBDIRECTORY( tools )
+
+IF (BUILD_PYTHON)
+  ADD_SUBDIRECTORY( python )
+ENDIF (BUILD_PYTHON)
 
 ############################## Target Properties ##############################
 SET_TARGET_PROPERTIES( SC2pp PROPERTIES LINKER_LANGUAGE CXX ) # Language forced to C++
