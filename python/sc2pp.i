@@ -45,9 +45,14 @@ std::vector<sc2pp::game_event_ptr> parse_events(unsigned char* buffer, size_t s)
 {
     return sc2pp::parse_events(buffer, buffer+s);
 }
+std::vector<sc2pp::message_event_ptr> parse_messages(unsigned char* buffer, size_t s)
+{
+    return sc2pp::parse_messages(buffer, buffer+s);
+}
 %}
 
 %ignore parse_events;
+%ignore parse_messages;
 
 %include "../sc2pp/types.hpp"
 %include "../sc2pp/parsers.hpp"
