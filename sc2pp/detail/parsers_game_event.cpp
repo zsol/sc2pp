@@ -2,6 +2,6 @@
 
 namespace sc2pp { namespace parsers {
 
-IMPLEMENT_DEFAULT_GRAMMAR(game_event_grammar)
+template struct game_event_grammar_t<default_iterator>;
 
 }}

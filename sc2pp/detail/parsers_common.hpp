@@ -20,14 +20,6 @@
 #include <sc2pp/detail/utils.hpp>
 #include <sc2pp/types.hpp>
 
-#define DECLARE_DEFAULT_GRAMMAR(GRAMMAR) \
-    struct default_##GRAMMAR##_t : GRAMMAR##_t<default_iterator> { default_##GRAMMAR##_t(); }; \
-    template <typename Iterator> struct GRAMMAR##_selector { typedef GRAMMAR##_t<Iterator> type; }; \
-    template <> struct GRAMMAR##_selector<default_iterator> { typedef default_##GRAMMAR##_t type; }
-
-#define IMPLEMENT_DEFAULT_GRAMMAR(GRAMMAR) \
-    default_##GRAMMAR##_t::default_##GRAMMAR##_t() : GRAMMAR##_t() {}
-
 namespace sc2pp { namespace parsers {
 template <typename Char, typename OutIter>
 OutIter escape_char(Char c, OutIter out)
@@ -215,8 +207,6 @@ struct big_tbyte_grammar_t
     boost::spirit::qi::rule<Iterator, boost::spirit::locals<int>, int()> big_tbyte;
 };
 
-DECLARE_DEFAULT_GRAMMAR(big_tbyte_grammar);
-
 template <typename Iterator>
 struct byteint_grammar_t
         : boost::spirit::qi::grammar<Iterator, int()>
@@ -233,8 +223,6 @@ struct byteint_grammar_t
 
     boost::spirit::qi::rule<Iterator, int()> byteint;
 };
-
-DECLARE_DEFAULT_GRAMMAR(byteint_grammar);
 
 template <typename Iterator>
 struct coordinate_grammar_t
@@ -282,8 +270,6 @@ struct coordinate_grammar_t
             boost::spirit::qi::locals<int, int>,
             float()> coordinate;
 };
-
-DECLARE_DEFAULT_GRAMMAR(coordinate_grammar);
 
 }}
 

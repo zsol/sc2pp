@@ -1,6 +1,6 @@
 #include <sc2pp/parsers.hpp>
 #include <sc2pp/detail/utils.hpp>
-#include <sc2pp/detail/parsers_message.hpp>
+#include <sc2pp/detail/parsers_message_fwd.hpp>
 #include <sc2pp/detail/types.hpp>
 
 #include <vector>

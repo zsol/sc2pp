@@ -1,6 +1,6 @@
 #include <sc2pp/parsers.hpp>
 #include <sc2pp/detail/utils.hpp>
-#include <sc2pp/detail/parsers_game_event.hpp>
+#include <sc2pp/detail/parsers_game_event_fwd.hpp>
 #include <sc2pp/detail/types.hpp>
 
 #include <vector>
@@ -15,7 +15,9 @@ namespace sc2pp
     {
         vector<game_event_ptr> ret;
         bitshift_iterator<const unsigned char*> bitbegin(begin), bitend(end);
-        parse(bitbegin, bitend, *sc2pp::parsers::game_event_grammar_selector<bitshift_iterator<const unsigned char*>>::type(), ret);
+        parse(bitbegin, bitend,
+              *parsers::game_event_grammar_t<bitshift_iterator<const unsigned char*> >(),
+              ret);
         return ret;
     }
 

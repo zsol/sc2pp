@@ -8,10 +8,10 @@
 #include <sc2pp/types.hpp>
 #include <sc2pp/parsers.hpp>
 #include <sc2pp/detail/parsers_common.hpp>
-#include <sc2pp/detail/parsers_game_event.hpp>
-#include <sc2pp/detail/parsers_message.hpp>
-#include <sc2pp/detail/parsers_object.hpp>
-#include <sc2pp/detail/parsers_timestamp.hpp>
+#include <sc2pp/detail/parsers_game_event_fwd.hpp>
+#include <sc2pp/detail/parsers_message_fwd.hpp>
+#include <sc2pp/detail/parsers_object_fwd.hpp>
+#include <sc2pp/detail/parsers_timestamp_fwd.hpp>
 #include <sc2pp/detail/utils.hpp>
 
 using namespace boost;

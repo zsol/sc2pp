@@ -2,6 +2,6 @@
 
 namespace sc2pp { namespace parsers {
 
-IMPLEMENT_DEFAULT_GRAMMAR(timestamp_grammar)
+template struct timestamp_grammar_t<default_iterator>;
 
 }}
