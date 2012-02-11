@@ -121,7 +121,7 @@ namespace sc2pp {
 
     struct selection_event_t : public game_event_t
     {
-        typedef std::vector<std::pair<int /*type*/, int/*id*/>> objects_t;
+        typedef std::vector<std::pair<int /*type*/, int/*id*/> > objects_t;
 
         struct selection_modifier_t : std::function<void ()>
         {
