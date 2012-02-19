@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface" xmlns:compile="http://zero-install.sourceforge.net/2006/namespaces/0compile" xmlns:release="http://zero-install.sourceforge.net/2007/namespaces/0release">
+  <name>SC2pp</name>
+  <summary>Starcraft 2 replay parser library and tools</summary>
+  <description>
+SC2pp is a parser library for Starcraft 2 replay files.</description>
+  <category>Utility</category>
+
+  <feed-for interface="http://snowglo.be/~zsol/zero-install/interfaces/SC2pp.xml"/>
+
+  <release:management>
+    <release:action phase="commit-release">
+      sed -i &quot;s/^SET( SC2pp_VERSION \S* )/SET( SC2pp_VERSION $RELEASE_VERSION )/&quot; CMakeLists.txt
+    </release:action>
+  </release:management>
+
+  <implementation id="." arch="*-src" compile:dup-src="true" license="Creative Commons Attribution 3.0 Unported" version="0.1.0-pre"
+                  compile:command="$CMAKE -D CMAKE_INSTALL_PREFIX=&quot;$DISTDIR&quot; -D BUILD_TESTS=OFF &quot;$SRCDIR&quot; &amp;&amp; make install">
+    <requires interface="http://afb.users.sourceforge.net/zero-install/interfaces/cmake.xml">
+      <executable-in-var name="CMAKE"/>
+    </requires>
+    <requires interface="http://snowglo.be/~zsol/zero-install/interfaces/libmpq.xml">
+      <environment insert="." name="CMAKE_PREFIX_PATH"/>
+      <environment insert="lib" name="LD_LIBRARY_PATH"/>
+      <environment insert="lib" name="DYLD_LIBRARY_PATH"/>
+    </requires>
+    <requires interface="http://snowglo.be/~zsol/zero-install/interfaces/libgmp.xml">
+      <environment insert="." name="CMAKE_PREFIX_PATH"/>
+      <environment insert="lib" name="LD_LIBRARY_PATH"/>
+      <environment insert="lib" name="DYLD_LIBRARY_PATH"/>
+    </requires>
+  </implementation>
+</interface>
