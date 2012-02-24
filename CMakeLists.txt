@@ -9,7 +9,7 @@ ENDIF ( NOT CMAKE_BUILD_TYPE )
 ############################## Project name ###################################
 PROJECT( SC2pp )
 
-SET( SC2pp_VERSION 0.0 )
+SET( SC2pp_VERSION 0.1.0 )
 
 ############################## Modules configuration ##########################
 OPTION( BUILD_DOC    "Build the doxygen documentation"         ON  )
