@@ -15,7 +15,7 @@ SC2pp is a parser library for Starcraft 2 replay files.</description>
     </release:action>
   </release:management>
 
-  <implementation arch="*-src" compile:command="$CMAKE -D CMAKE_INSTALL_PREFIX=&quot;$DISTDIR&quot; -D BUILD_TESTS=OFF &quot;$SRCDIR&quot; &amp;&amp; make install" compile:dup-src="true" id="." license="Creative Commons Attribution 3.0 Unported" released="2012-02-24" version="0.1.0">
+  <implementation arch="*-src" compile:command="$CMAKE -D CMAKE_INSTALL_PREFIX=&quot;$DISTDIR&quot; -D BUILD_TESTS=OFF &quot;$SRCDIR&quot; &amp;&amp; make install" compile:dup-src="true" id="." license="Creative Commons Attribution 3.0 Unported" version="0.1.0-post">
     <requires interface="http://afb.users.sourceforge.net/zero-install/interfaces/cmake.xml">
       <executable-in-var name="CMAKE"/>
     </requires>
