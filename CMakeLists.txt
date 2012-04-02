@@ -9,18 +9,18 @@ ENDIF ( NOT CMAKE_BUILD_TYPE )
 ############################## Project name ###################################
 PROJECT( SC2pp )
 
-SET( SC2pp_MAJOR_VERSION 0 )
-SET( SC2pp_MINOR_VERSION 0 )
-SET( SC2pp_PATCH_LEVEL   0 )
+SET( SC2pp_VERSION 0.1.0 )
 
 ############################## Modules configuration ##########################
 OPTION( BUILD_DOC    "Build the doxygen documentation"         ON  )
 OPTION( BUILD_STATIC "Build as a static library"               OFF  )
 OPTION( BUILD_TESTS  "Build the tests"                         ON  )
+OPTION( BUILD_TOOLS  "Build the tools"                         ON )
 
 MESSAGE( STATUS "Building documentation:   " ${BUILD_DOC}    )
 MESSAGE( STATUS "Building static:          " ${BUILD_STATIC} )
 MESSAGE( STATUS "Building tests:           " ${BUILD_TESTS}  )
+MESSAGE( STATUS "Building tools:           " ${BUILD_TOOLS}  )
 
 ############################## Sources ########################################
 FILE( GLOB_RECURSE Sources        sc2pp/*.cpp sc2pp/detail/*.cpp sc2pp/*.hpp sc2pp/*.h sc2pp/detail/*.hpp )
@@ -67,7 +67,14 @@ set(MPQLib "${install_dir}/lib/libmpq.a")
 INCLUDE_DIRECTORIES( ${install_dir}/include )
 ENDIF()
 ############################## Includes #######################################
+SET( CMAKE_INCLUDE_DIRECTORIES_PROJECT_BEFORE ON )
 INCLUDE_DIRECTORIES( . ) # Headers
+
+FIND_PATH( MPQInclude mpq.h
+           PATH_SUFFIXES libmpq )
+FIND_PATH( GMPXXInclude gmpxx.h )
+
+INCLUDE_DIRECTORIES( BEFORE ${MPQInclude}/.. ${GMPXXInclude} )
 
 ############################## Project generation #############################
 IF ( BUILD_STATIC )
@@ -93,7 +100,9 @@ IF ( BUILD_TESTS )
 #  FIND_PACKAGE( Boost REQUIRED COMPONENTS program_options )
 ENDIF( BUILD_TESTS )
 
-ADD_SUBDIRECTORY( tools )
+IF ( BUILD_TOOLS )
+  ADD_SUBDIRECTORY( tools )
+ENDIF ( BUILD_TOOLS )
 
 ############################## Target Properties ##############################
 SET_TARGET_PROPERTIES( SC2pp PROPERTIES LINKER_LANGUAGE CXX ) # Language forced to C++
@@ -110,3 +119,11 @@ SET_TARGET_PROPERTIES( SC2pp PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ./${CMAKE_BUILD
 
 SET_TARGET_PROPERTIES( SC2pp PROPERTIES OUTPUT_NAME "sc2pp" ) # Output name
 
+INSTALL( DIRECTORY sc2pp/
+         DESTINATION include/sc2pp
+         FILES_MATCHING
+         PATTERN "*.hpp" )
+INSTALL( TARGETS SC2pp 
+         RUNTIME DESTINATION bin 
+         LIBRARY DESTINATION lib 
+         ARCHIVE DESTINATION lib )
