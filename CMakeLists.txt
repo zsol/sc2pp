@@ -76,6 +76,8 @@ FIND_PATH( GMPXXInclude gmpxx.h )
 
 INCLUDE_DIRECTORIES( BEFORE ${MPQInclude}/.. ${GMPXXInclude} )
 
+SET(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+
 ############################## Project generation #############################
 IF ( BUILD_STATIC )
   ADD_LIBRARY( SC2pp STATIC ${Sources} ${PublicHeaders} ${PrivateHeaders} )
