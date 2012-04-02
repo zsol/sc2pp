@@ -1,5 +1,6 @@
 ############################## Minimum CMake version to run ###################
 CMAKE_MINIMUM_REQUIRED( VERSION 2.6 )
+cmake_policy(SET CMP0007 NEW)
 
 ############################## Checks #########################################
 IF ( NOT CMAKE_BUILD_TYPE )
@@ -47,24 +48,24 @@ FIND_LIBRARY( zlib NAMES z )
 FIND_LIBRARY( bz2 NAMES bz2 )
 
 IF (NOT MPQLib)
-MESSAGE( "libmpq not found, using bundled version" )
-include(ExternalProject)
-ExternalProject_Add( MPQLib
-SOURCE_DIR ${PROJECT_SOURCE_DIR}/deps/libmpq
-CONFIGURE_COMMAND CFLAGS=-fPIC ./configure --prefix=<INSTALL_DIR> --disable-shared
-BUILD_IN_SOURCE 1
-BUILD_COMMAND "make")
+  MESSAGE(STATUS "libmpq not found, using bundled version" )
+  include(ExternalProject)
+  ExternalProject_Add( MPQLib
+					   SOURCE_DIR ${PROJECT_SOURCE_DIR}/deps/libmpq
+					   CONFIGURE_COMMAND CFLAGS=-fPIC ./configure --prefix=<INSTALL_DIR> --disable-shared
+					   BUILD_IN_SOURCE 1
+					   BUILD_COMMAND "make")
 
-ExternalProject_Add_Step( MPQLib autogen
-WORKING_DIRECTORY <SOURCE_DIR>
-COMMAND ./autogen.sh
-DEPENDEES update
-DEPENDERS configure
-ALWAYS 0)
+  ExternalProject_Add_Step( MPQLib autogen
+							WORKING_DIRECTORY <SOURCE_DIR>
+							COMMAND ./autogen.sh
+							DEPENDEES update
+							DEPENDERS configure
+							ALWAYS 0)
 
-ExternalProject_Get_Property(MPQLib install_dir)
-set(MPQLib "${install_dir}/lib/libmpq.a")
-INCLUDE_DIRECTORIES( ${install_dir}/include )
+  ExternalProject_Get_Property(MPQLib install_dir)
+  set(MPQLib "${install_dir}/lib/libmpq.a")
+  INCLUDE_DIRECTORIES( ${install_dir}/include )
 ENDIF()
 ############################## Includes #######################################
 SET( CMAKE_INCLUDE_DIRECTORIES_PROJECT_BEFORE ON )
@@ -77,6 +78,15 @@ FIND_PATH( GMPXXInclude gmpxx.h )
 INCLUDE_DIRECTORIES( BEFORE ${MPQInclude}/.. ${GMPXXInclude} )
 
 SET(CMAKE_INSTALL_RPATH "\\\$ORIGIN/../lib")
+
+############################## Uninstall target ###############################
+configure_file(
+	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+	IMMEDIATE @ONLY)
+
+add_custom_target(uninstall
+	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 ############################## Project generation #############################
 IF ( BUILD_STATIC )
