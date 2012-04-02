@@ -80,5 +80,15 @@ BOOST_FUSION_ADAPT_STRUCT(sc2pp::detail::byte_array,
 BOOST_FUSION_ADAPT_STRUCT(sc2pp::detail::byte_map, 
                           (sc2pp::detail::byte_map::map_type, map))
 
+namespace boost { namespace spirit { namespace traits { namespace detail {
+template <typename A, typename B> struct has_value_type;
+template <>
+struct has_value_type<sc2pp::detail::hugenum_t, mpl::bool_<false> >
+{
+    BOOST_STATIC_CONSTANT(bool, value = false);
+    typedef mpl::bool_<false> type;
+};
+
+}}}}
 
 #endif

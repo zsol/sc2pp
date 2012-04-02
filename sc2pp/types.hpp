@@ -181,6 +181,9 @@ namespace sc2pp {
 
     struct ability_event_t : public game_event_t
     {
+        ability_event_t() = default;
+        ability_event_t(num_t const & ts, int pid, num_t const & ability) : game_event_t(ts, pid), ability(ability) {}
+        num_t ability;
     };
     typedef std::shared_ptr<ability_event_t> ability_event_ptr;
 

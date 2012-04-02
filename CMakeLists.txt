@@ -33,17 +33,39 @@ SOURCE_GROUP( "Sources"           FILES ${Sources} )
 SET_PROPERTY(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG SC2PP_DEBUG)
 
 IF (CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS "-g0 -std=c++0x -Wall -Wextra -Werror")
+  set(CMAKE_CXX_FLAGS "-g0 -std=c++0x -Wall -Wextra -Werror -fPIC")
 ENDIF()
 INCLUDE( FindBoost )
 SET( Boost_USE_MULTITHREADED ON )
-SET( Boost_USE_STATIC_LIBS   ON )
-FIND_PACKAGE( Boost REQUIRED COMPONENTS iostreams program_options)
+SET( Boost_USE_STATIC_LIBS   OFF )
+FIND_PACKAGE( Boost REQUIRED COMPONENTS program_options)
 
 FIND_LIBRARY( MPQLib NAMES mpq )
 FIND_LIBRARY( GMP NAMES gmp libgmp )
 FIND_LIBRARY( GMPXX NAMES gmpxx libgmpxx )
+FIND_LIBRARY( zlib NAMES z )
+FIND_LIBRARY( bz2 NAMES bz2 )
 
+IF (NOT MPQLib)
+MESSAGE( "libmpq not found, using bundled version" )
+include(ExternalProject)
+ExternalProject_Add( MPQLib
+SOURCE_DIR ${PROJECT_SOURCE_DIR}/deps/libmpq
+CONFIGURE_COMMAND CFLAGS=-fPIC ./configure --prefix=<INSTALL_DIR> --disable-shared
+BUILD_IN_SOURCE 1
+BUILD_COMMAND "make")
+
+ExternalProject_Add_Step( MPQLib autogen
+WORKING_DIRECTORY <SOURCE_DIR>
+COMMAND ./autogen.sh
+DEPENDEES update
+DEPENDERS configure
+ALWAYS 0)
+
+ExternalProject_Get_Property(MPQLib install_dir)
+set(MPQLib "${install_dir}/lib/libmpq.a")
+INCLUDE_DIRECTORIES( ${install_dir}/include )
+ENDIF()
 ############################## Includes #######################################
 INCLUDE_DIRECTORIES( . ) # Headers
 
@@ -54,7 +76,7 @@ ELSE ( BUILD_STATIC )
   ADD_LIBRARY( SC2pp SHARED ${Sources} ${PublicHeaders} ${PrivateHeaders} )
 ENDIF ( BUILD_STATIC )
 
-TARGET_LINK_LIBRARIES( SC2pp ${Boost_LIBRARIES} ${MPQLib} ${GMP} ${GMPXX} )
+TARGET_LINK_LIBRARIES( SC2pp ${MPQLib} ${GMP} ${GMPXX} ${zlib} ${bz2} )
 
 
 ################################### Options ###################################

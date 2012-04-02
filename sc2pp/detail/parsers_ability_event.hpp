@@ -66,7 +66,7 @@ ability_event_grammar_t<Iterator>::ability_event_grammar_t()
                 (eps[_pass = _a & 0x20] > repeat(9)[byte_]) |
                 (eps[_pass = _a & 0x40] > repeat(19)[byte_]) |
                 eps
-                ) > eps[_val = construct<ability_event_ptr>()];
+            ) > eps[_val = construct<ability_event_ptr>()];
 
     targeted =
             byte_ >> bits(7) >> bits(1, 0x1) >
