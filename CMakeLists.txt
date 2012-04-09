@@ -17,11 +17,13 @@ OPTION( BUILD_DOC    "Build the doxygen documentation"         ON  )
 OPTION( BUILD_STATIC "Build as a static library"               OFF  )
 OPTION( BUILD_TESTS  "Build the tests"                         ON  )
 OPTION( BUILD_TOOLS  "Build the tools"                         ON )
+OPTION( BUILD_PYTHON "Build python wrapper library" OFF )
 
 MESSAGE( STATUS "Building documentation:   " ${BUILD_DOC}    )
 MESSAGE( STATUS "Building static:          " ${BUILD_STATIC} )
 MESSAGE( STATUS "Building tests:           " ${BUILD_TESTS}  )
 MESSAGE( STATUS "Building tools:           " ${BUILD_TOOLS}  )
+MESSAGE( STATUS "Building python wrapper:  " ${BUILD_PYTHON} )
 
 ############################## Sources ########################################
 FILE( GLOB_RECURSE Sources        sc2pp/*.cpp sc2pp/detail/*.cpp sc2pp/*.hpp sc2pp/*.h sc2pp/detail/*.hpp )
@@ -97,6 +99,27 @@ ENDIF ( BUILD_STATIC )
 
 TARGET_LINK_LIBRARIES( SC2pp ${MPQLib} ${GMP} ${GMPXX} ${zlib} ${bz2} )
 
+############################## Target Properties ##############################
+SET_TARGET_PROPERTIES( SC2pp PROPERTIES LINKER_LANGUAGE CXX ) # Language forced to C++
+
+SET_TARGET_PROPERTIES( SC2pp PROPERTIES DEBUG_POSTFIX "d" ) # Debug mode: a trailing "d"
+
+SET_TARGET_PROPERTIES( SC2pp PROPERTIES RELEASE_POSTFIX "" ) # Release mode: no postfix
+
+SET_TARGET_PROPERTIES( SC2pp PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE} ) # Path for shared libraries
+SET_TARGET_PROPERTIES( SC2pp PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE} ) # Path for module libraries
+SET_TARGET_PROPERTIES( SC2pp PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE} ) # Path for import libraries
+
+SET_TARGET_PROPERTIES( SC2pp PROPERTIES OUTPUT_NAME "sc2pp" ) # Output name
+
+INSTALL( DIRECTORY sc2pp/
+         DESTINATION include/sc2pp
+         FILES_MATCHING
+         PATTERN "*.hpp" )
+INSTALL( TARGETS SC2pp 
+         RUNTIME DESTINATION bin 
+         LIBRARY DESTINATION lib 
+         ARCHIVE DESTINATION lib )
 
 ################################### Options ###################################
 IF ( BUILD_STATIC )
@@ -116,26 +139,7 @@ IF ( BUILD_TOOLS )
   ADD_SUBDIRECTORY( tools )
 ENDIF ( BUILD_TOOLS )
 
-############################## Target Properties ##############################
-SET_TARGET_PROPERTIES( SC2pp PROPERTIES LINKER_LANGUAGE CXX ) # Language forced to C++
+IF (BUILD_PYTHON)
+  ADD_SUBDIRECTORY( python )
+ENDIF (BUILD_PYTHON)
 
-SET_TARGET_PROPERTIES( SC2pp PROPERTIES DEBUG_POSTFIX "d" ) # Debug mode: a trailing "d"
-
-SET_TARGET_PROPERTIES( SC2pp PROPERTIES RELEASE_POSTFIX "" ) # Release mode: no postfix
-
-SET_TARGET_PROPERTIES( SC2pp PROPERTIES PREFIX  ""  ) # Remove the "lib" prefix
-
-SET_TARGET_PROPERTIES( SC2pp PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${CMAKE_BUILD_TYPE} ) # Path for shared libraries
-SET_TARGET_PROPERTIES( SC2pp PROPERTIES LIBRARY_OUTPUT_DIRECTORY ./${CMAKE_BUILD_TYPE} ) # Path for module libraries
-SET_TARGET_PROPERTIES( SC2pp PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ./${CMAKE_BUILD_TYPE} ) # Path for import libraries
-
-SET_TARGET_PROPERTIES( SC2pp PROPERTIES OUTPUT_NAME "sc2pp" ) # Output name
-
-INSTALL( DIRECTORY sc2pp/
-         DESTINATION include/sc2pp
-         FILES_MATCHING
-         PATTERN "*.hpp" )
-INSTALL( TARGETS SC2pp 
-         RUNTIME DESTINATION bin 
-         LIBRARY DESTINATION lib 
-         ARCHIVE DESTINATION lib )
