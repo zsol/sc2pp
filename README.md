@@ -30,27 +30,27 @@ Once you have the dependencies, building and installing sc2pp should be a simple
 
 1. Clone the git repository from github:
 
-  git clone git://github.com/zsol/sc2pp.git
+		git clone git://github.com/zsol/sc2pp.git
 
 2. If you wish to use the bundled libmpq, make sure to pull that down, too:
 
-  cd sc2pp; git submodule init; git submodule update
+		cd sc2pp; git submodule init; git submodule update
 
 3. Create a temporary build directory somewhere:
 
-  mkdir build; cd build
+		mkdir build; cd build
 
 4. Create the build infrastructure:
 
-  cmake [path_to_sc2pp_source]
+		cmake [path_to_sc2pp_source]
 
 5. Start the build:
 
-  make
+		make
 
 6. If everything went well, you should be able to install the generated binaries and header files:
 
-  sudo make install
+		sudo make install
 
 The tools
 ---------
